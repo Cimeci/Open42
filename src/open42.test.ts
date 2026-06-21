@@ -193,6 +193,28 @@ describe("Open42.respondStream", () => {
   });
 });
 
+describe("Open42 memory", () => {
+  it("injects the learner memory into every mentor prompt", async () => {
+    const provider = new CapturingProvider();
+    const open42 = new Open42({ provider, memory: "- worked on recursion, still shaky" });
+    await open42.respond([{ role: "student", content: "hello" }]);
+    expect(provider.lastRequest?.system).toContain("What I remember about this learner");
+    expect(provider.lastRequest?.system).toContain("worked on recursion, still shaky");
+  });
+
+  it("summarize asks the provider and returns the note", async () => {
+    const provider = new CapturingProvider("- worked on loops\n- still unsure about scope");
+    const open42 = new Open42({ provider });
+    const summary = await open42.summarize([
+      { role: "student", content: "why is x undefined?" },
+      { role: "mentor", content: "what scope is x declared in?" },
+    ]);
+    expect(summary).toContain("worked on loops");
+    // The summarizer prompt, not a mentor prompt, drives the call.
+    expect(provider.lastRequest?.system).toContain("Session summary task");
+  });
+});
+
 describe("Open42.setLanguage", () => {
   it("forces the reply language into the system prompt", async () => {
     const provider = new CapturingProvider();

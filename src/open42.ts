@@ -3,6 +3,7 @@
 // multi-agent layer on top of the single-mentor Maieutic primitive.
 
 import { composeMentorPrompt } from "./prompts.js";
+import { SUMMARIZER } from "./generated/prompts.js";
 import { assertRespondable, toProviderMessages } from "./messages.js";
 import { MentorRegistry, DEFAULT_MENTOR_ID } from "./mentors.js";
 import { HeuristicRouter } from "./router.js";
@@ -35,6 +36,8 @@ export interface Open42Config {
   readonly rigor?: Rigor;
   /** Force a reply language; otherwise the mentor mirrors the student. */
   readonly language?: string;
+  /** Learner memory injected into every mentor prompt for continuity. */
+  readonly memory?: string;
 }
 
 export interface RespondOptions {
@@ -50,6 +53,7 @@ export class Open42 {
   private readonly router: Router;
   private readonly rigor: Rigor;
   private language?: string;
+  private memory?: string;
   private readonly promptCache = new Map<string, string>();
 
   constructor(config: Open42Config) {
@@ -59,6 +63,7 @@ export class Open42 {
     this.router = config.router ?? new HeuristicRouter(DEFAULT_MENTOR_ID);
     this.rigor = config.rigor ?? "graduated";
     this.language = config.language;
+    this.memory = config.memory;
   }
 
   /** List the available mentors (sub-agents). */
@@ -145,12 +150,36 @@ export class Open42 {
     return { content: result.content, raw: result.raw, mentor: mentor.id };
   }
 
+  /** Replace the injected learner memory. Rebuilds prompts on the next turn. */
+  setMemory(memory: string | undefined): this {
+    this.memory = memory;
+    this.promptCache.clear();
+    return this;
+  }
+
+  /**
+   * Summarize a transcript into a short, conservative note for the student's
+   * local memory. Uses the provider; never includes solutions.
+   */
+  async summarize(transcript: readonly Message[]): Promise<string> {
+    const system = this.language ? `${SUMMARIZER}\n\nWrite the summary in ${this.language}.` : SUMMARIZER;
+    const result = await this.provider.complete({
+      system,
+      messages: [
+        ...toProviderMessages(transcript),
+        { role: "user", content: "Now write the session summary as instructed above." },
+      ],
+    });
+    return result.content.trim();
+  }
+
   private composePrompt(mentor: MentorDefinition): string {
     const cached = this.promptCache.get(mentor.id);
     if (cached) return cached;
     const prompt = composeMentorPrompt(mentor, {
       rigor: this.rigor,
       language: this.language,
+      memory: this.memory,
     });
     this.promptCache.set(mentor.id, prompt);
     return prompt;

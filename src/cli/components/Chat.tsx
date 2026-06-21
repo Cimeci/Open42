@@ -6,6 +6,7 @@ import { Open42 } from "../../open42.js";
 import type { Message } from "../../types.js";
 import { mentorStyle, STUDENT_COLOR, ERROR_COLOR, BRAND_COLOR } from "../theme.js";
 import { Banner } from "./Banner.js";
+import { saveSession, listSessions, recentSessions, memoryContextBlock, forgetAll } from "../memory.js";
 import {
   strings,
   uiLangOf,
@@ -98,9 +99,51 @@ export function Chat({
     push({ role: "system", content: nt.langSet(label) });
   };
 
-  const handleCommand = (text: string) => {
+  const handleMemoryCommand = async (cmd: string) => {
+    if (demo) {
+      push({ role: "system", content: t.memoryDemoDisabled });
+      return;
+    }
+    if (cmd === "remember") {
+      if (transcript.length === 0) {
+        push({ role: "system", content: t.memoryNothing });
+        return;
+      }
+      push({ role: "system", content: t.memorySaving });
+      try {
+        const summary = await open42.summarize(transcript);
+        const path = saveSession(summary, new Date().toISOString());
+        open42.setMemory(memoryContextBlock());
+        push({ role: "system", content: t.memorySaved(path) });
+      } catch (err) {
+        push({ role: "error", content: err instanceof Error ? err.message : String(err) });
+      }
+      return;
+    }
+    if (cmd === "memory") {
+      const sessions = listSessions();
+      if (sessions.length === 0) {
+        push({ role: "system", content: t.memoryEmpty });
+        return;
+      }
+      const recent = recentSessions(3).map((s) => s.content).join("\n\n");
+      push({ role: "system", content: `${t.memoryHeader(sessions.length)}\n\n${recent}` });
+      return;
+    }
+    // forget
+    const n = forgetAll();
+    open42.setMemory(undefined);
+    push({ role: "system", content: t.memoryForgotten(n) });
+  };
+
+  const handleCommand = async (text: string) => {
     const [cmd, arg] = text.slice(1).trim().split(/\s+/, 2);
     switch (cmd) {
+      case "remember":
+      case "memory":
+      case "forget":
+        await handleMemoryCommand(cmd);
+        return;
       case "help":
         push({ role: "system", content: t.help });
         return;
@@ -157,7 +200,7 @@ export function Chat({
     setInput("");
     if (!text) return;
     if (text.startsWith("/")) {
-      handleCommand(text);
+      await handleCommand(text);
       return;
     }
 

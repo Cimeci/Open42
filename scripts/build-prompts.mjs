@@ -24,6 +24,7 @@ const core = {
   INDEPENDENCE: read("independence.md"),
   METHOD: read("method.md"),
   CALIBRATION: read("calibration.md"),
+  SUMMARIZER: read("summary.md"),
 };
 
 const domains = {

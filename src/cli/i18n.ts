@@ -41,6 +41,13 @@ export interface Strings {
   providerLocal: string;
   selectHint: string;
   localReady: string;
+  memorySaving: string;
+  memorySaved: (path: string) => string;
+  memoryNothing: string;
+  memoryEmpty: string;
+  memoryHeader: (n: number) => string;
+  memoryForgotten: (n: number) => string;
+  memoryDemoDisabled: string;
 }
 
 const FR: Strings = {
@@ -59,6 +66,9 @@ const FR: Strings = {
     "/mentor <id>     fixe un mentor (ex: /mentor ai-coach)",
     "/auto            reprend le routage automatique",
     "/lang <auto|fr|en>  change la langue",
+    "/remember        sauvegarde un résumé de la session (mémoire locale)",
+    "/memory          affiche ce qui est mémorisé",
+    "/forget          efface toute la mémoire",
     "/clear           efface la conversation",
     "/quit            quitte",
   ].join("\n"),
@@ -89,6 +99,13 @@ const FR: Strings = {
   selectHint: "↑/↓ puis Entrée · Tab pour la langue",
   localReady:
     "Mode local : lance d'abord un modèle (ex : ollama run llama3.1), puis pose ta question.",
+  memorySaving: "Résumé de la session en cours…",
+  memorySaved: (path) => `Mémoire enregistrée : ${path}`,
+  memoryNothing: "Rien à mémoriser pour l'instant (la conversation est vide).",
+  memoryEmpty: "Aucun souvenir enregistré pour l'instant.",
+  memoryHeader: (n) => `Mémoire : ${n} session${n === 1 ? "" : "s"} enregistrée${n === 1 ? "" : "s"}.`,
+  memoryForgotten: (n) => `Mémoire effacée (${n} session${n === 1 ? "" : "s"} supprimée${n === 1 ? "" : "s"}).`,
+  memoryDemoDisabled: "La mémoire est désactivée en mode démo.",
 };
 
 const EN: Strings = {
@@ -107,6 +124,9 @@ const EN: Strings = {
     "/mentor <id>     pin a mentor (e.g. /mentor ai-coach)",
     "/auto            resume automatic routing",
     "/lang <auto|fr|en>  change the language",
+    "/remember        save a summary of this session (local memory)",
+    "/memory          show what is remembered",
+    "/forget          erase all memory",
     "/clear           clear the conversation",
     "/quit            quit",
   ].join("\n"),
@@ -136,6 +156,13 @@ const EN: Strings = {
   providerLocal: "Local (Ollama): free, no key",
   selectHint: "↑/↓ then Enter · Tab for language",
   localReady: "Local mode: start a model first (e.g. ollama run llama3.1), then ask your question.",
+  memorySaving: "Summarizing the session…",
+  memorySaved: (path) => `Memory saved: ${path}`,
+  memoryNothing: "Nothing to remember yet (the conversation is empty).",
+  memoryEmpty: "No memory saved yet.",
+  memoryHeader: (n) => `Memory: ${n} session${n === 1 ? "" : "s"} saved.`,
+  memoryForgotten: (n) => `Memory erased (${n} session${n === 1 ? "" : "s"} removed).`,
+  memoryDemoDisabled: "Memory is disabled in demo mode.",
 };
 
 export function strings(lang: UiLang): Strings {

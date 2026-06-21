@@ -127,8 +127,25 @@ commands:
 | `/mentor <id>` | pin a mentor (e.g. `/mentor ai-coach`) |
 | `/auto` | resume automatic routing |
 | `/lang <auto\|fr\|en>` | change the language |
+| `/remember` | save a short summary of this session to local memory |
+| `/memory` | show what is remembered |
+| `/forget` | erase all memory |
 | `/clear` | clear the conversation |
 | `/quit` | exit |
+
+### Memory (optional, 100% local)
+
+Open42 can remember across sessions to help the mentor calibrate over time. It is
+deliberately conservative and private:
+
+- **You** decide when to save, with `/remember` (it writes a short, human-readable
+  summary to `~/.open42/memory/`).
+- It stores **understanding, not content**: what you worked on and what's still
+  shaky — never your solutions or code, never your API key.
+- It **never overstates mastery** (no model "grading" you into "mastered").
+- Past summaries are injected at the next session's start for continuity; read
+  them with `/memory`, wipe everything with `/forget`. Plain Markdown you can open
+  and edit yourself.
 
 ### Language
 

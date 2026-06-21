@@ -77,6 +77,8 @@ export function composeSystemPrompt(options: ComposeOptions = {}): string {
 export interface ComposeMentorOptions {
   readonly rigor?: Rigor;
   readonly language?: string;
+  /** Optional learner memory block injected for cross-session continuity. */
+  readonly memory?: string;
 }
 
 /**
@@ -89,13 +91,16 @@ export function composeMentorPrompt(
   options: ComposeMentorOptions = {},
 ): string {
   const roleHeader = `# Mentor role: ${mentor.title}\n\n${mentor.description}`;
+  const memoryBlock = options.memory?.trim()
+    ? `# What I remember about this learner\n\nFrom past local sessions (may be outdated — use only to calibrate, never assume mastery):\n\n${options.memory.trim()}`
+    : undefined;
   return assemble({
     domains: orderDomains(mentor.domains ?? []),
     rigor: options.rigor ?? "graduated",
     language: options.language,
     roleHeader,
     customPrompt: mentor.prompt,
-    extraInstructions: mentor.extraInstructions,
+    extraInstructions: [memoryBlock, mentor.extraInstructions].filter(Boolean).join(SECTION_RULE) || undefined,
   });
 }
 

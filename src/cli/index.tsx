@@ -14,6 +14,7 @@ import {
 import { Onboarding } from "./components/Onboarding.js";
 import { Chat } from "./components/Chat.js";
 import { MockProvider } from "./mockProvider.js";
+import { memoryContextBlock } from "./memory.js";
 import { replyLanguageOf, type LangChoice } from "./i18n.js";
 
 const HELP_TEXT = `Open42 — Socratic mentors in your terminal
@@ -57,6 +58,7 @@ function ChatFlow({ config, onConfig }: { config: CliConfig; onConfig: (c: CliCo
       new Open42({
         provider: createProvider(config),
         language: replyLanguageOf(config.language ?? "auto"),
+        memory: memoryContextBlock(),
       }),
     // Built once; language changes are applied live via open42.setLanguage.
     [],

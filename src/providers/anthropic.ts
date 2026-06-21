@@ -1,4 +1,4 @@
-// Anthropic (Claude) provider — uses the HTTP API directly, no SDK dependency.
+// Anthropic (Claude) provider - uses the HTTP API directly, no SDK dependency.
 
 import type { CompletionRequest, CompletionResult, OnTextDelta, Provider } from "../types.js";
 import { readSSE } from "./sse.js";
@@ -51,7 +51,7 @@ export class AnthropicProvider implements Provider {
 
     if (!response.ok) {
       const detail = await safeText(response);
-      throw new Error(`AnthropicProvider: HTTP ${response.status} — ${detail}`);
+      throw new Error(`AnthropicProvider: HTTP ${response.status} - ${detail}`);
     }
 
     const data = (await response.json()) as AnthropicResponse;
@@ -89,7 +89,7 @@ export class AnthropicProvider implements Provider {
 
     if (!response.ok) {
       const detail = await safeText(response);
-      throw new Error(`AnthropicProvider: HTTP ${response.status} — ${detail}`);
+      throw new Error(`AnthropicProvider: HTTP ${response.status} - ${detail}`);
     }
 
     let content = "";

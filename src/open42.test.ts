@@ -101,7 +101,7 @@ describe("LlmRouter", () => {
 
 describe("Open42 orchestrator", () => {
   it("requires a provider", () => {
-    // @ts-expect-error — exercising the runtime guard
+    // @ts-expect-error - exercising the runtime guard
     expect(() => new Open42({})).toThrow(/provider is required/);
   });
 

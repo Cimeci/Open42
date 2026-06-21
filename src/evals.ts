@@ -1,9 +1,9 @@
 // Pedagogical evaluation harness.
 //
 // Two layers:
-//  1. STRUCTURAL — deterministic checks that need no model (routing correctness,
+//  1. STRUCTURAL - deterministic checks that need no model (routing correctness,
 //     guardrail integrity, domain wiring). Run anywhere, anytime.
-//  2. BEHAVIOURAL — checks applied to a *real* model reply (asks a question,
+//  2. BEHAVIOURAL - checks applied to a *real* model reply (asks a question,
 //     doesn't dump a full solution). Ready to run when a provider is available.
 
 import { BUILTIN_MENTORS, MentorRegistry } from "./mentors.js";

@@ -1,5 +1,5 @@
-// Open42 — a portable, provider-agnostic Socratic mentoring harness that helps
-// students learn to code, reason, architect, review, and use AI well — without
+// Open42 - a portable, provider-agnostic Socratic mentoring harness that helps
+// students learn to code, reason, architect, review, and use AI well - without
 // becoming dependent on it.
 
 // Orchestrator (multi-mentor / sub-agent layer)

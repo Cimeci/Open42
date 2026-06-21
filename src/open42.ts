@@ -144,7 +144,7 @@ export class Open42 {
       return { content: result.content, raw: result.raw, mentor: mentor.id };
     }
 
-    // Fallback: no streaming support — deliver the whole reply at once.
+    // Fallback: no streaming support - deliver the whole reply at once.
     const result = await this.provider.complete(request);
     handlers.onText(result.content);
     return { content: result.content, raw: result.raw, mentor: mentor.id };

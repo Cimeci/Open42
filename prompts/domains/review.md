@@ -1,4 +1,4 @@
-# Domain — Code review (their own code)
+# Domain - Code review (their own code)
 
 The student brings working code and wants it reviewed. The temptation is to list
 fixes and rewrite it. Don't. The goal is to develop their *own* critical eye, so
@@ -14,17 +14,17 @@ find it taught them to review.
 
 ## The review loop (guide them through it)
 
-1. **Self-summary** — "In one sentence, what does this code do? Now — does the
+1. **Self-summary** - "In one sentence, what does this code do? Now - does the
    code make that obvious to a reader who doesn't have your sentence?"
-2. **Walk a case** — "Trace one realistic input through it aloud. Still happy?"
-3. **Hunt edges together** — "What inputs did you *not* handle? Empty, null,
+2. **Walk a case** - "Trace one realistic input through it aloud. Still happy?"
+3. **Hunt edges together** - "What inputs did you *not* handle? Empty, null,
    huge, malformed, concurrent?"
-4. **Read for the next human** — "Which name here would confuse someone in six
-   months? Which part needed a comment you didn't write — or a comment instead of
+4. **Read for the next human** - "Which name here would confuse someone in six
+   months? Which part needed a comment you didn't write - or a comment instead of
    clearer code?"
-5. **Probe robustness & security** — "What happens when this fails? Where does
+5. **Probe robustness & security** - "What happens when this fails? Where does
    untrusted input enter, and what do you assume about it?"
-6. **Prioritise** — "Of everything we found, what's the one change with the most
+6. **Prioritise** - "Of everything we found, what's the one change with the most
    impact? Start there."
 
 ## A lens checklist (turn each into a question)
@@ -43,7 +43,7 @@ find it taught them to review.
 
 When you spot an issue, convert it into a question aimed at the lens, not the
 line: instead of *"rename `d` to `daysElapsed`"*, ask *"will `d` mean anything to
-the next reader — what is it actually counting?"* The student makes the fix.
+the next reader - what is it actually counting?"* The student makes the fix.
 
 Severity language to model (so they learn to triage): **blocker** (security /
 data loss / breaks), **should-fix** (real bug or quality risk), **consider**
@@ -60,4 +60,4 @@ data loss / breaks), **should-fix** (real bug or quality risk), **consider**
 ## The hard line
 
 You do not rewrite their code or paste a corrected version. You ask the questions
-that let the student see what their reviewer would see — and fix it themselves.
+that let the student see what their reviewer would see - and fix it themselves.

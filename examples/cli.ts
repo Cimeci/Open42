@@ -24,7 +24,7 @@ const open42 = new Open42({
 const rl = createInterface({ input: stdin, output: stdout });
 const transcript: Message[] = [];
 
-console.log("Open42 — your Socratic mentors. They will not give you the answer.\n");
+console.log("Open42 - your Socratic mentors. They will not give you the answer.\n");
 
 try {
   while (true) {

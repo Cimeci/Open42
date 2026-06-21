@@ -17,7 +17,7 @@ class FakeProvider implements Provider {
 
 describe("Maieutic", () => {
   it("requires a provider", () => {
-    // @ts-expect-error — exercising the runtime guard
+    // @ts-expect-error - exercising the runtime guard
     expect(() => new Maieutic({})).toThrow(/provider is required/);
   });
 
@@ -49,10 +49,10 @@ describe("Maieutic", () => {
   });
 
   it("returns the mentor's reply", async () => {
-    const provider = new FakeProvider("Read me the error message — which line?");
+    const provider = new FakeProvider("Read me the error message - which line?");
     const mentor = new Maieutic({ provider });
     const reply = await mentor.respond([{ role: "student", content: "Help" }]);
-    expect(reply.content).toBe("Read me the error message — which line?");
+    expect(reply.content).toBe("Read me the error message - which line?");
     expect(reply.raw).toEqual({ ok: true });
   });
 

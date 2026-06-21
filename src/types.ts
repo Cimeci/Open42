@@ -10,10 +10,10 @@ export type Domain =
 
 /**
  * How strictly the mentor withholds the solution.
- * - `strict`    — never reveal solution code (the default, faithful to 42's spirit).
- * - `graduated` — questions first; small code snippets only after sustained effort
+ * - `strict`    - never reveal solution code (the default, faithful to 42's spirit).
+ * - `graduated` - questions first; small code snippets only after sustained effort
  *                 or an explicit request.
- * - `adaptive`  — modulate strictness by the student's demonstrated level.
+ * - `adaptive`  - modulate strictness by the student's demonstrated level.
  */
 export type Rigor = "strict" | "graduated" | "adaptive";
 
@@ -72,7 +72,7 @@ export type OnTextDelta = (delta: string) => void;
 
 /**
  * The contract every model backend implements. Implement this to plug in any
- * LLM — hosted (Anthropic, OpenAI, …) or local (Ollama, llama.cpp, …).
+ * LLM - hosted (Anthropic, OpenAI, …) or local (Ollama, llama.cpp, …).
  *
  * `stream` is optional: providers that implement it enable token-by-token output;
  * the harness falls back to `complete` for providers that don't.

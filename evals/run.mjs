@@ -15,7 +15,7 @@ import {
 function printReport(title, report) {
   console.log(`\n${title}  (${report.passed}/${report.total})`);
   for (const r of report.results) {
-    console.log(`  ${r.ok ? "✓" : "✗"} ${r.id}${r.ok ? "" : `  — ${r.detail}`}`);
+    console.log(`  ${r.ok ? "✓" : "✗"} ${r.id}${r.ok ? "" : `  - ${r.detail}`}`);
   }
 }
 
@@ -36,7 +36,7 @@ if (anthropic || openai) {
   failed += behavioural.failed;
 } else {
   console.log(
-    "\nBEHAVIOURAL  (skipped) — set ANTHROPIC_API_KEY or OPENAI_API_KEY to run against a real model.",
+    "\nBEHAVIOURAL  (skipped) - set ANTHROPIC_API_KEY or OPENAI_API_KEY to run against a real model.",
   );
 }
 

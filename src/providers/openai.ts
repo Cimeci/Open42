@@ -1,4 +1,4 @@
-// OpenAI-compatible provider — works with OpenAI and any compatible endpoint
+// OpenAI-compatible provider - works with OpenAI and any compatible endpoint
 // (Ollama, LM Studio, vLLM, OpenRouter, …) by overriding `baseUrl`.
 
 import type { CompletionRequest, CompletionResult, OnTextDelta, Provider } from "../types.js";
@@ -48,7 +48,7 @@ export class OpenAIProvider implements Provider {
 
     if (!response.ok) {
       const detail = await safeText(response);
-      throw new Error(`OpenAIProvider: HTTP ${response.status} — ${detail}`);
+      throw new Error(`OpenAIProvider: HTTP ${response.status} - ${detail}`);
     }
 
     const data = (await response.json()) as OpenAIResponse;
@@ -82,7 +82,7 @@ export class OpenAIProvider implements Provider {
 
     if (!response.ok) {
       const detail = await safeText(response);
-      throw new Error(`OpenAIProvider: HTTP ${response.status} — ${detail}`);
+      throw new Error(`OpenAIProvider: HTTP ${response.status} - ${detail}`);
     }
 
     let content = "";

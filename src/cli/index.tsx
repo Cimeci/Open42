@@ -17,7 +17,7 @@ import { MockProvider } from "./mockProvider.js";
 import { memoryContextBlock } from "./memory.js";
 import { replyLanguageOf, type LangChoice } from "./i18n.js";
 
-const HELP_TEXT = `Open42 — Socratic mentors in your terminal
+const HELP_TEXT = `Open42 - Socratic mentors in your terminal
 
 Usage:
   open42                 start the interactive mentor

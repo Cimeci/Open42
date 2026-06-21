@@ -64,7 +64,7 @@ export class LlmRouter implements Router {
     const catalogue = mentors.map((m) => `- ${m.id}: ${m.description}`).join("\n");
     const system =
       "You are a router for a tutoring system. Given the student's latest message, " +
-      "reply with ONLY the id of the single most appropriate mentor — no other text.\n\n" +
+      "reply with ONLY the id of the single most appropriate mentor - no other text.\n\n" +
       `Available mentors:\n${catalogue}`;
 
     const result = await this.provider.complete({

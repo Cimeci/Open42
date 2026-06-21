@@ -1,7 +1,7 @@
 # Open42
 
 > A portable, provider-agnostic **Socratic mentoring harness** that helps
-> students learn to code, reason, architect, review — **and use AI well without
+> students learn to code, reason, architect, review - **and use AI well without
 > becoming dependent on it.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
@@ -9,7 +9,7 @@
 ![Open42 running in the terminal](docs/open42_cli_screen.png)
 
 Open42 turns any capable LLM into a team of patient mentors instead of an answer
-machine. It is built in the spirit of [42](https://42.fr)'s pedagogy —
+machine. It is built in the spirit of [42](https://42.fr)'s pedagogy -
 **autonomy, peer-learning, learning by doing, and the conviction that productive
 struggle is how understanding is born.**
 
@@ -26,8 +26,8 @@ command it.
 
 Open42 has two goals at once:
 
-1. **Learn to think** — debug, reason, design, and review *yourself*.
-2. **Learn to wield AI** — go faster and further *with* AI while staying able to
+1. **Learn to think** - debug, reason, design, and review *yourself*.
+2. **Learn to wield AI** - go faster and further *with* AI while staying able to
    work *without* it.
 
 > Dependence is using AI to **avoid** thinking. Mastery is using AI to
@@ -55,7 +55,7 @@ classify the request.
 
 ### A customisable architecture
 
-Register your own mentors — the same way 42 builds learning from modular
+Register your own mentors - the same way 42 builds learning from modular
 projects:
 
 ```ts
@@ -91,17 +91,17 @@ npm start          # builds, then launches the real mentor (needs a key)
 # or, once published:  npx open42
 ```
 
-**No API key? Run `npm run demo`** to experience the complete interface —
-streaming, mentor badges, routing, commands — with a canned offline mentor.
+**No API key? Run `npm run demo`** to experience the complete interface -
+streaming, mentor badges, routing, commands - with a canned offline mentor.
 
 Replies **stream** in token by token, like Claude Code.
 
 On first run it asks **what you want to use** and adapts:
 
-- **Anthropic (Claude)** or **OpenAI (GPT)** — hosted, needs an API key
+- **Anthropic (Claude)** or **OpenAI (GPT)** - hosted, needs an API key
   (`sk-ant-…` / `sk-…`), saved to `~/.open42/config.json` (chmod 600). You can
   also set `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` and skip onboarding.
-- **Local (Ollama)** — **free, no key.** Run a model first (`ollama run llama3.1`),
+- **Local (Ollama)** - **free, no key.** Run a model first (`ollama run llama3.1`),
   then pick "Local". Perfect for students without an API budget.
 
 Pick non-interactively with `open42 --provider ollama` (or `anthropic`/`openai`)
@@ -143,7 +143,7 @@ deliberately conservative and private:
 - **You** decide when to save, with `/remember` (it writes a short, human-readable
   summary to `~/.open42/memory/`).
 - It stores **understanding, not content**: what you worked on and what's still
-  shaky — never your solutions or code, never your API key.
+  shaky - never your solutions or code, never your API key.
 - It **never overstates mastery** (no model "grading" you into "mastered").
 - Past summaries are injected at the next session's start for continuity; read
   them with `/memory`, wipe everything with `/forget`. Plain Markdown you can open
@@ -151,14 +151,14 @@ deliberately conservative and private:
 
 ### Language
 
-By default (`auto`), the mentor **mirrors the language you write in** — write in
+By default (`auto`), the mentor **mirrors the language you write in** - write in
 French, get French; write in Spanish, get Spanish. Pick a fixed language with
 `open42 --lang fr` (or `en`), the first-run prompt (press Tab to switch), or
 `/lang` in-app. A fixed choice also localizes the interface (currently FR/EN) and
 is saved to `~/.open42/config.json`. Press <kbd>Ctrl+C</kbd> during a reply to
 cancel it; twice when idle to quit.
 
-No API key handy? Run the **offline previews** — they need no key:
+No API key handy? Run the **offline previews** - they need no key:
 
 ```bash
 node examples/inspect.mjs       # mentors, routing, guardrails
@@ -180,7 +180,7 @@ open42/
 │   ├── open42.ts         #   the orchestrator (routes to mentors)
 │   ├── mentors.ts        #   built-in mentors + extensible registry
 │   ├── router.ts         #   HeuristicRouter · LlmRouter
-│   ├── harness.ts        #   Maieutic — the single-mentor primitive
+│   ├── harness.ts        #   Maieutic - the single-mentor primitive
 │   ├── prompts.ts        #   composes system prompts from the modules
 │   ├── providers/        #   provider-agnostic adapters (Anthropic, OpenAI, …)
 │   ├── cli/              #   the terminal app (Ink/React TUI)
@@ -192,7 +192,7 @@ open42/
 
 **You do not need TypeScript to use Open42.** The pedagogy lives in `prompts/`.
 Concatenate the foundation files plus the domains you want and paste the result
-as a system prompt — that *is* the harness.
+as a system prompt - that *is* the harness.
 
 ## Quickstart (TypeScript)
 
@@ -217,7 +217,7 @@ console.log(reply.mentor);  // → "tutor" (auto-routed)
 console.log(reply.content); // → a question, not a fix
 ```
 
-See [`examples/`](./examples) — including an **offline inspector** that needs no
+See [`examples/`](./examples) - including an **offline inspector** that needs no
 API key and shows exactly what the harness composes and sends.
 
 ## Quickstart (no code)
@@ -229,10 +229,10 @@ API key and shows exactly what the harness composes and sends.
 
 ## Contributing
 
-Open42 is built for — and we hope by — the global student community. Better
+Open42 is built for - and we hope by - the global student community. Better
 questions, new mentors, and translations are all welcome. See
 [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 
-[MIT](./LICENSE) — free to use, fork, and adapt, including by schools.
+[MIT](./LICENSE) - free to use, fork, and adapt, including by schools.

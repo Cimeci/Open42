@@ -1,4 +1,4 @@
-// Maieutic: the low-level single-mentor primitive — one composed system prompt
+// Maieutic: the low-level single-mentor primitive - one composed system prompt
 // over one provider. Open42 (see open42.ts) layers mentor routing on top.
 
 import { composeSystemPrompt } from "./prompts.js";

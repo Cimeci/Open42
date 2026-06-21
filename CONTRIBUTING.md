@@ -1,12 +1,12 @@
 # Contributing to Open42
 
-Thank you for helping build mentors that help students *think* — and *command
-AI* — instead of copy-pasting. Contributions from students, educators, and
+Thank you for helping build mentors that help students *think* - and *command
+AI* - instead of copy-pasting. Contributions from students, educators, and
 engineers are all welcome.
 
 ## The most valuable contributions
 
-The heart of this project is in [`prompts/`](./prompts) — plain Markdown, no code
+The heart of this project is in [`prompts/`](./prompts) - plain Markdown, no code
 required. The best contributions are usually pedagogical:
 
 - **Better questions.** A sharper Socratic question in any domain file.
@@ -38,11 +38,11 @@ npm run eval       # pedagogical evals (routing + guardrails; behavioural with a
 npm run demo       # try the terminal UI with no API key
 ```
 
-When you change prompts or routing, run `npm run eval` — the structural evals
+When you change prompts or routing, run `npm run eval` - the structural evals
 guard against accidentally weakening the guardrails or breaking mentor routing.
 
 - The prompt module `src/generated/prompts.ts` is **generated** from `prompts/`.
-  Never edit it by hand — edit the Markdown and re-run `npm run build`.
+  Never edit it by hand - edit the Markdown and re-run `npm run build`.
 - Keep the harness **provider-agnostic**. Provider-specific logic belongs in
   `src/providers/`, behind the `Provider` interface.
 - Add tests for new behaviour. Keep functions small and files focused.
@@ -52,7 +52,7 @@ guard against accidentally weakening the guardrails or breaking mentor routing.
 1. Keep PRs focused; one idea per PR.
 2. Describe the pedagogical intent of prompt changes, not just the diff.
 3. Make sure `npm run build` and `npm test` pass.
-4. Be kind in review — we model the behaviour we want in the mentor.
+4. Be kind in review - we model the behaviour we want in the mentor.
 
 ## Code of Conduct
 

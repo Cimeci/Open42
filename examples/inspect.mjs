@@ -1,4 +1,4 @@
-// Offline test/inspection of Open42 — no API key needed.
+// Offline test/inspection of Open42 - no API key needed.
 // Shows (1) the available mentors, (2) how the router dispatches different
 // student messages, and (3) what each mentor's system prompt contains, using a
 // fake provider that captures the request.
@@ -26,7 +26,7 @@ const line = (c = "─") => console.log(c.repeat(72));
 line("═");
 console.log("1) MENTORS DISPONIBLES (sous-agents)");
 line("═");
-for (const m of open42.listMentors()) console.log(`  ${m.id.padEnd(10)} — ${m.title}`);
+for (const m of open42.listMentors()) console.log(`  ${m.id.padEnd(10)} - ${m.title}`);
 
 // 2) Routing: same harness, different mentors -----------------------------
 line("═");

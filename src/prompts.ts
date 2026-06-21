@@ -92,7 +92,7 @@ export function composeMentorPrompt(
 ): string {
   const roleHeader = `# Mentor role: ${mentor.title}\n\n${mentor.description}`;
   const memoryBlock = options.memory?.trim()
-    ? `# What I remember about this learner\n\nFrom past local sessions (may be outdated — use only to calibrate, never assume mastery):\n\n${options.memory.trim()}`
+    ? `# What I remember about this learner\n\nFrom past local sessions (may be outdated - use only to calibrate, never assume mastery):\n\n${options.memory.trim()}`
     : undefined;
   return assemble({
     domains: orderDomains(mentor.domains ?? []),

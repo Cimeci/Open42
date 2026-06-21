@@ -6,6 +6,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
+![Open42 running in the terminal](docs/open42_cli_screen.png)
+
 Open42 turns any capable LLM into a team of patient mentors instead of an answer
 machine. It is built in the spirit of [42](https://42.fr)'s pedagogy —
 **autonomy, peer-learning, learning by doing, and the conviction that productive

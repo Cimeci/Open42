@@ -2,6 +2,7 @@
 
 import type { CompletionRequest, CompletionResult, OnTextDelta, Provider } from "../types.js";
 import { readSSE } from "./sse.js";
+import { safeErrorDetail } from "./util.js";
 
 export interface AnthropicProviderOptions {
   readonly apiKey: string;
@@ -50,7 +51,7 @@ export class AnthropicProvider implements Provider {
     });
 
     if (!response.ok) {
-      const detail = await safeText(response);
+      const detail = await safeErrorDetail(response);
       throw new Error(`AnthropicProvider: HTTP ${response.status} - ${detail}`);
     }
 
@@ -88,7 +89,7 @@ export class AnthropicProvider implements Provider {
     });
 
     if (!response.ok) {
-      const detail = await safeText(response);
+      const detail = await safeErrorDetail(response);
       throw new Error(`AnthropicProvider: HTTP ${response.status} - ${detail}`);
     }
 
@@ -119,12 +120,4 @@ export class AnthropicProvider implements Provider {
 
 interface AnthropicResponse {
   content?: Array<{ type: string; text: string }>;
-}
-
-async function safeText(response: Response): Promise<string> {
-  try {
-    return (await response.text()).slice(0, 500);
-  } catch {
-    return "<no body>";
-  }
 }

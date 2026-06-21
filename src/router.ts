@@ -1,5 +1,3 @@
-// Routers decide which mentor (sub-agent) handles the next turn.
-
 import type { Message, MentorDefinition, Provider, Router } from "./types.js";
 
 function latestStudentMessage(transcript: readonly Message[]): string {
@@ -79,7 +77,9 @@ export class LlmRouter implements Router {
     });
 
     const picked = result.content.trim().toLowerCase();
-    const match = mentors.find((m) => picked.includes(m.id.toLowerCase()));
+    const match =
+      mentors.find((m) => picked === m.id.toLowerCase()) ??
+      mentors.find((m) => picked.includes(m.id.toLowerCase()));
     return match?.id ?? current ?? this.fallbackId ?? mentors[0]!.id;
   }
 }

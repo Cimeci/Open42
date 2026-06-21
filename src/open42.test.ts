@@ -106,6 +106,18 @@ describe("LlmRouter", () => {
     );
     expect(id).toBe("reviewer");
   });
+
+  it("prefers an exact id over a substring match", async () => {
+    const overlapping = [
+      { id: "review", title: "A", description: "d", prompt: "p" },
+      { id: "reviewer", title: "B", description: "d", prompt: "p" },
+    ];
+    const id = await new LlmRouter(new CapturingProvider("reviewer")).route(
+      [{ role: "student", content: "x" }],
+      overlapping,
+    );
+    expect(id).toBe("reviewer");
+  });
 });
 
 describe("Open42 orchestrator", () => {
@@ -287,7 +299,7 @@ describe("compact prompt style", () => {
     const compactPrompt = provider.lastRequest!.system;
 
     const full = new Open42({ provider: new CapturingProvider() });
-    const fullPrompt = (full as unknown as { promptFor(id: string): string }).promptFor("tutor");
+    const fullPrompt = full.promptFor("tutor");
 
     expect(compactPrompt).toContain("Socratic coding mentor");
     expect(compactPrompt.toLowerCase()).toContain("never");

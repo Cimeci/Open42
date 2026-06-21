@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import { useMemo, useState } from "react";
 import { render } from "ink";
 import { Open42 } from "../open42.js";
@@ -94,7 +95,8 @@ function main(): void {
     return;
   }
   if (args.includes("--version") || args.includes("-v")) {
-    console.log("open42 0.1.0");
+    const { version } = createRequire(import.meta.url)("../../package.json") as { version: string };
+    console.log(`open42 ${version}`);
     return;
   }
 
@@ -102,8 +104,6 @@ function main(): void {
   const providerArg = parseProviderArg(args);
   const modelArg = flagValue(args, "--model");
 
-  // Demo mode: experience the full UI with a fake mentor, no API key required.
-  // Defaults to English (override with --lang fr).
   if (args.includes("--demo")) {
     const lang = langArg ?? "en";
     const open42 = new Open42({ provider: new MockProvider(), language: replyLanguageOf(lang) });

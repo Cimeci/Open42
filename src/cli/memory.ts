@@ -30,7 +30,7 @@ export function saveSession(
   base: string = DEFAULT_MEMORY_DIR,
 ): string {
   const dir = sessionsDir(base);
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true, mode: 0o700 });
   const safe = timestamp.replace(/[:.]/g, "-");
   const file = join(dir, `${safe}.md`);
   const body = `# Session ${timestamp}\n\n${summary.trim()}\n`;

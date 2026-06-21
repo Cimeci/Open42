@@ -47,6 +47,32 @@ guard against accidentally weakening the guardrails or breaking mentor routing.
   `src/providers/`, behind the `Provider` interface.
 - Add tests for new behaviour. Keep functions small and files focused.
 
+## Using AI to contribute
+
+Open42 is built with AI assistance, and you are welcome to use AI to contribute.
+But we hold contributors to the same standard the tool teaches learners. The
+point of this project is using AI to *amplify* thinking, not to *replace* it.
+
+So, when you use AI on a contribution:
+
+- **Understand everything you submit.** If you could not explain a change in your
+  own words in review, do not open the PR yet. Unreviewed AI output is borrowed,
+  not owned.
+- **Verify, don't trust.** AI (including the model behind Open42) is confidently
+  wrong sometimes. Run `npm run build`, `npm test`, and `npm run eval` before
+  submitting, and read the diff critically rather than assuming it is correct.
+- **Protect the guardrails.** If AI helps you edit a prompt, a mentor, or the
+  router, ask whether the change still serves "lead with understanding, not
+  answers". Run `npm run eval`; if you weaken a guardrail, the structural evals
+  should catch it - and if they do not, that is itself a bug worth reporting.
+- **Keep the voice.** Generated prose tends toward bland and verbose. Prefer
+  fewer, sharper words; match the existing tone in the prompts and docs.
+- **Be transparent.** If a contribution is largely AI-generated, a short note in
+  the PR helps reviewers calibrate.
+
+The irony is the whole point: a tool that helps people stay capable without AI
+should be maintained by people who can still think without it.
+
 ## Pull requests
 
 1. Keep PRs focused; one idea per PR.

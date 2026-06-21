@@ -21,8 +21,8 @@ export function Banner({ lang = "en" }: { lang?: UiLang }) {
       paddingY={1}
       marginBottom={1}
     >
-      {LOGO.map((line, i) => (
-        <Text key={i} color={BRAND_COLOR} bold>
+      {LOGO.map((line) => (
+        <Text key={line} color={BRAND_COLOR} bold>
           {line}
         </Text>
       ))}

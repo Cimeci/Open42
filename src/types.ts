@@ -1,5 +1,3 @@
-// Public types for the Maïeutique harness.
-
 /** The mentoring domains the harness supports. */
 export type Domain =
   | "debugging"
@@ -54,8 +52,6 @@ export interface MaieuticConfig {
   readonly extraInstructions?: string;
 }
 
-// --- Provider abstraction (keeps the harness model-agnostic) -----------------
-
 /** A single message in the provider's wire format. */
 export interface ProviderMessage {
   readonly role: "user" | "assistant";
@@ -93,8 +89,6 @@ export interface Provider {
     signal?: AbortSignal,
   ): Promise<CompletionResult>;
 }
-
-// --- Mentors (sub-agents) ----------------------------------------------------
 
 /**
  * A mentor is a specialised sub-agent: a distinct persona + system prompt the

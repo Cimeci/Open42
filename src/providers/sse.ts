@@ -1,5 +1,3 @@
-// Minimal Server-Sent Events reader for streaming completions.
-
 /**
  * Read an SSE response line by line, invoking `onData` with the payload of each
  * `data:` line. Works with the web ReadableStream returned by Node's fetch.
@@ -11,6 +9,14 @@ export async function readSSE(
   const body = response.body;
   if (!body) throw new Error("Streaming response has no body.");
 
+  const emit = (line: string) => {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("data:")) {
+      const data = trimmed.slice("data:".length).trim();
+      if (data) onData(data);
+    }
+  };
+
   const decoder = new TextDecoder();
   let buffer = "";
 
@@ -19,12 +25,11 @@ export async function readSSE(
     buffer += decoder.decode(chunk, { stream: true });
     let newlineIndex: number;
     while ((newlineIndex = buffer.indexOf("\n")) >= 0) {
-      const line = buffer.slice(0, newlineIndex).trim();
+      emit(buffer.slice(0, newlineIndex));
       buffer = buffer.slice(newlineIndex + 1);
-      if (line.startsWith("data:")) {
-        const data = line.slice("data:".length).trim();
-        if (data) onData(data);
-      }
     }
   }
+
+  buffer += decoder.decode(); // flush any trailing multi-byte character
+  if (buffer) emit(buffer);
 }

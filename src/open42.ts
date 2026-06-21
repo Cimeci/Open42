@@ -152,6 +152,7 @@ export class Open42 {
 
     // Fallback: no streaming support - deliver the whole reply at once.
     const result = await this.provider.complete(request);
+    if (options.signal?.aborted) throw new DOMException("Aborted", "AbortError");
     handlers.onText(result.content);
     return { content: result.content, raw: result.raw, mentor: mentor.id };
   }

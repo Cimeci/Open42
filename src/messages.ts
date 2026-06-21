@@ -1,5 +1,3 @@
-// Shared helpers for turning a tutoring transcript into provider messages.
-
 import type { Message, ProviderMessage } from "./types.js";
 
 /** Validate that a transcript is non-empty and ends on a student turn. */

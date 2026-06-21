@@ -130,7 +130,6 @@ export function Chat({
       push({ role: "system", content: `${t.memoryHeader(sessions.length)}\n\n${recent}` });
       return;
     }
-    // forget
     const n = forgetAll();
     open42.setMemory(undefined);
     push({ role: "system", content: t.memoryForgotten(n) });

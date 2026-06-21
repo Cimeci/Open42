@@ -1,5 +1,3 @@
-// Open42 CLI configuration: API key + provider, persisted to ~/.open42/config.json.
-
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
@@ -10,6 +8,12 @@ import type { Provider } from "../types.js";
 import type { LangChoice } from "./i18n.js";
 
 export type ProviderName = "anthropic" | "openai" | "ollama";
+
+const PROVIDER_NAMES: readonly ProviderName[] = ["anthropic", "openai", "ollama"];
+
+function toProviderName(value: unknown): ProviderName {
+  return PROVIDER_NAMES.includes(value as ProviderName) ? (value as ProviderName) : "anthropic";
+}
 
 export interface CliConfig {
   provider: ProviderName;
@@ -27,9 +31,9 @@ export function loadConfig(): CliConfig {
   try {
     const raw = JSON.parse(readFileSync(CONFIG_FILE, "utf8")) as Partial<CliConfig>;
     return {
-      provider: raw.provider ?? "anthropic",
-      apiKey: raw.apiKey,
-      model: raw.model,
+      provider: toProviderName(raw.provider),
+      apiKey: typeof raw.apiKey === "string" ? raw.apiKey : undefined,
+      model: typeof raw.model === "string" ? raw.model : undefined,
       language: raw.language ?? "auto",
     };
   } catch {
@@ -38,17 +42,12 @@ export function loadConfig(): CliConfig {
 }
 
 export function saveConfig(config: CliConfig): void {
-  if (!existsSync(CONFIG_DIR)) mkdirSync(CONFIG_DIR, { recursive: true });
-  // Owner-only permissions: the file holds an API key.
+  // Owner-only: the directory and file may hold an API key.
+  if (!existsSync(CONFIG_DIR)) mkdirSync(CONFIG_DIR, { recursive: true, mode: 0o700 });
   writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), { mode: 0o600 });
 }
 
 export const CONFIG_PATH = CONFIG_FILE;
-
-/** Guess the provider from an API key's shape. */
-export function inferProvider(apiKey: string): ProviderName {
-  return apiKey.startsWith("sk-ant") ? "anthropic" : "openai";
-}
 
 /**
  * Resolve the effective key + provider. Environment variables win over the saved

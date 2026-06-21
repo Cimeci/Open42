@@ -9,7 +9,9 @@ import type {
   Provider,
 } from "../types.js";
 
-const REPLIES_FR: Record<string, string> = {
+type ReplyKey = "tutor" | "architect" | "reviewer" | "ai-coach" | "default";
+
+const REPLIES_FR: Record<ReplyKey, string> = {
   tutor:
     "Bonne question, ce genre de blocage arrive à tout le monde. Avant de toucher au code : " +
     "pour un cas simple, quel résultat attends-tu exactement, et qu'obtiens-tu à la place ? " +
@@ -28,7 +30,7 @@ const REPLIES_FR: Record<string, string> = {
   default: "Que penses-tu qu'il se passe ici, étape par étape ? Commençons par la première.",
 };
 
-const REPLIES_EN: Record<string, string> = {
+const REPLIES_EN: Record<ReplyKey, string> = {
   tutor:
     "Good question, this kind of snag happens to everyone. Before touching the code: for one " +
     "simple case, what result do you expect exactly, and what do you get instead? Describe the " +
@@ -47,19 +49,18 @@ const REPLIES_EN: Record<string, string> = {
 
 function pickReply(system: string): string {
   const replies = system.includes("Always respond in English.") ? REPLIES_EN : REPLIES_FR;
-  if (system.includes("Socratic Tutor")) return replies.tutor!;
-  if (system.includes("Architecture Mentor")) return replies.architect!;
-  if (system.includes("Code Review Mentor")) return replies.reviewer!;
-  if (system.includes("AI Literacy Coach")) return replies["ai-coach"]!;
-  return replies.default!;
+  if (system.includes("Socratic Tutor")) return replies.tutor;
+  if (system.includes("Architecture Mentor")) return replies.architect;
+  if (system.includes("Code Review Mentor")) return replies.reviewer;
+  if (system.includes("AI Literacy Coach")) return replies["ai-coach"];
+  return replies.default;
 }
 
-/** Small chunks so the stream looks like fluid typing. */
 function chunk(text: string): string[] {
   return text.match(/.{1,4}/gs) ?? [text];
 }
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 export class MockProvider implements Provider {
   readonly name = "mock";

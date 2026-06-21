@@ -3,6 +3,7 @@
 
 import type { CompletionRequest, CompletionResult, OnTextDelta, Provider } from "../types.js";
 import { readSSE } from "./sse.js";
+import { safeErrorDetail } from "./util.js";
 
 export interface OpenAIProviderOptions {
   readonly apiKey: string;
@@ -47,7 +48,7 @@ export class OpenAIProvider implements Provider {
     });
 
     if (!response.ok) {
-      const detail = await safeText(response);
+      const detail = await safeErrorDetail(response);
       throw new Error(`OpenAIProvider: HTTP ${response.status} - ${detail}`);
     }
 
@@ -81,7 +82,7 @@ export class OpenAIProvider implements Provider {
     });
 
     if (!response.ok) {
-      const detail = await safeText(response);
+      const detail = await safeErrorDetail(response);
       throw new Error(`OpenAIProvider: HTTP ${response.status} - ${detail}`);
     }
 
@@ -109,12 +110,4 @@ export class OpenAIProvider implements Provider {
 
 interface OpenAIResponse {
   choices?: Array<{ message?: { content?: string } }>;
-}
-
-async function safeText(response: Response): Promise<string> {
-  try {
-    return (await response.text()).slice(0, 500);
-  } catch {
-    return "<no body>";
-  }
 }

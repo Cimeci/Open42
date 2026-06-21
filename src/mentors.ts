@@ -87,7 +87,6 @@ export class MentorRegistry {
     for (const mentor of initial) this.register(mentor);
   }
 
-  /** Add or replace a mentor. Returns the registry for chaining. */
   register(mentor: MentorDefinition): this {
     if (!mentor.id) throw new Error("MentorRegistry: mentor.id is required.");
     if (!mentor.domains?.length && !mentor.prompt?.trim()) {
@@ -99,12 +98,10 @@ export class MentorRegistry {
     return this;
   }
 
-  /** Look up a mentor by id. */
   get(id: string): MentorDefinition | undefined {
     return this.mentors.get(id);
   }
 
-  /** Get a mentor by id or throw a helpful error. */
   require(id: string): MentorDefinition {
     const mentor = this.get(id);
     if (!mentor) {

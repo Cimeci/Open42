@@ -1,5 +1,3 @@
-// Visual theme for the Open42 terminal UI: a colour + label per mentor.
-
 export interface MentorStyle {
   label: string;
   color: string; // any Ink-supported colour

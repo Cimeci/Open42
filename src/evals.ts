@@ -29,8 +29,6 @@ function report(results: CheckResult[]): EvalReport {
   return { total: results.length, passed, failed: results.length - passed, results };
 }
 
-// --- Routing scenarios -------------------------------------------------------
-
 export interface RoutingScenario {
   readonly id: string;
   readonly input: string;
@@ -47,8 +45,6 @@ export const ROUTING_SCENARIOS: readonly RoutingScenario[] = [
   { id: "route/ai-en", input: "How do I verify the code ChatGPT generated?", expect: "ai-coach" },
   { id: "route/ai-fr", input: "Comment vérifier le code généré par l'IA ?", expect: "ai-coach" },
 ];
-
-// --- Structural checks (no model needed) -------------------------------------
 
 export function runStructuralEvals(): EvalReport {
   const results: CheckResult[] = [];
@@ -88,8 +84,6 @@ export function runStructuralEvals(): EvalReport {
 
   return report(results);
 }
-
-// --- Behavioural checks (need a real model reply) ----------------------------
 
 const FENCE = /```[\s\S]*?```/g;
 

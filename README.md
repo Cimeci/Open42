@@ -16,14 +16,12 @@ Requires Node.js 20+.
 git clone https://github.com/Cimeci/Open42.git
 cd Open42
 npm install
-npm run demo            # try the full UI right now, no API key needed
+npm start                # on first run, it asks which provider you want
 ```
 
-Then launch it for real with your own model:
+Pick your model:
 
 ```bash
-npm start                        # on first run, asks which provider you want
-
 # free & local, no API key (start a model first: ollama run llama3.1):
 npm start -- --provider ollama
 
@@ -107,17 +105,13 @@ open42.registerMentor({
 ## Run it in your terminal
 
 Open42 ships a terminal app (built with [Ink](https://github.com/vadimdemedes/ink),
-like Claude Code and Codex). Bring your own API key:
+like Claude Code and Codex). Bring your own model:
 
 ```bash
 npm install
-npm run demo       # ← try the full UI with a fake mentor, NO API key needed
-npm start          # builds, then launches the real mentor (needs a key)
+npm start          # builds, then launches the mentor
 # or, once published:  npx open42
 ```
-
-**No API key? Run `npm run demo`** to experience the complete interface -
-streaming, mentor badges, routing, commands - with a canned offline mentor.
 
 Replies **stream** in token by token, like Claude Code.
 
@@ -183,20 +177,13 @@ French, get French; write in Spanish, get Spanish. Pick a fixed language with
 is saved to `~/.open42/config.json`. Press <kbd>Ctrl+C</kbd> during a reply to
 cancel it; twice when idle to quit.
 
-No API key handy? Run the **offline previews** - they need no key:
-
-```bash
-node examples/inspect.mjs       # mentors, routing, guardrails
-node examples/tui-preview.mjs   # a rendered snapshot of the TUI
-```
-
 ## Architecture
 
 ```
 open42/
 ├── prompts/              # ← the heart: language-agnostic Markdown (source of truth)
 │   ├── persona.md        #   who the mentor is
-│   ├── guardrails.md     #   the absolute rules (never give the solution)
+│   ├── guardrails.md     #   the core rules (lead with understanding, not answers)
 │   ├── independence.md   #   using AI without depending on it (in every mentor)
 │   ├── method.md         #   the Socratic loop
 │   ├── calibration.md    #   gauging level & scaffolding
@@ -211,7 +198,7 @@ open42/
 │   ├── cli/              #   the terminal app (Ink/React TUI)
 │   └── types.ts
 ├── bin/open42.mjs        # the `open42` executable
-├── examples/             # runnable demos (incl. offline previews)
+├── examples/             # library usage examples
 └── scripts/              # builds the prompts into the bundle
 ```
 

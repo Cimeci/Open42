@@ -1,0 +1,63 @@
+{
+  "name": "open42",
+  "version": "0.1.0",
+  "description": "A portable, provider-agnostic Socratic mentoring harness that helps students learn to code, reason, architect, review, and use AI well — without becoming dependent on it.",
+  "keywords": [
+    "socratic",
+    "mentor",
+    "education",
+    "tutoring",
+    "llm",
+    "harness",
+    "agents",
+    "ai-literacy",
+    "42",
+    "pedagogy"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "open42": "./bin/open42.mjs"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "prompts",
+    "bin"
+  ],
+  "scripts": {
+    "prebuild": "node scripts/build-prompts.mjs",
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "pretest": "node scripts/build-prompts.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "start": "npm run build && node bin/open42.mjs",
+    "demo": "npm run build && node bin/open42.mjs --demo",
+    "eval": "npm run build && node evals/run.mjs",
+    "example": "npm run build && node --experimental-strip-types examples/cli.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "ink": "^5.1.0",
+    "ink-spinner": "^5.0.0",
+    "ink-text-input": "^6.0.0",
+    "react": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.0",
+    "ink-testing-library": "^4.0.0",
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.0"
+  }
+}

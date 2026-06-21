@@ -121,7 +121,9 @@ On first run it asks **what you want to use** and adapts:
   (`sk-ant-…` / `sk-…`), saved to `~/.open42/config.json` (chmod 600). You can
   also set `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` and skip onboarding.
 - **Local (Ollama)** - **free, no key.** Run a model first (`ollama run llama3.1`),
-  then pick "Local". Perfect for students without an API budget.
+  then pick "Local". Perfect for students without an API budget. Local models
+  automatically get a **compact prompt** so smaller models still follow the
+  guardrails.
 
 Pick non-interactively with `open42 --provider ollama` (or `anthropic`/`openai`)
 and `--model <name>`.

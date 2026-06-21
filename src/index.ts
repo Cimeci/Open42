@@ -40,6 +40,7 @@ export type { OllamaProviderOptions } from "./providers/ollama.js";
 export type {
   Domain,
   Rigor,
+  PromptStyle,
   Message,
   MentorReply,
   MaieuticConfig,

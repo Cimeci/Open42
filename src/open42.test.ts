@@ -77,6 +77,15 @@ describe("HeuristicRouter", () => {
     );
     expect(id).toBe("tutor");
   });
+
+  it("stays on the current mentor when nothing matches (sticky)", () => {
+    const id = new HeuristicRouter("tutor").route(
+      [{ role: "student", content: "hmm, not sure, what do you think?" }],
+      mentors,
+      "architect",
+    );
+    expect(id).toBe("architect");
+  });
 });
 
 describe("LlmRouter", () => {
@@ -230,6 +239,59 @@ describe("Open42.setLanguage", () => {
     open42.setLanguage(undefined);
     await open42.respond([{ role: "student", content: "hello" }]);
     expect(provider.lastRequest?.system).not.toContain("Always respond in");
+  });
+});
+
+describe("sticky routing", () => {
+  it("stays with the current mentor when a follow-up has no clear signal", async () => {
+    const provider = new CapturingProvider();
+    const open42 = new Open42({ provider });
+    // First turn clearly routes to the architect.
+    const first = await open42.respond([
+      { role: "student", content: "How should I structure my architecture?" },
+    ]);
+    expect(first.mentor).toBe("architect");
+    // Ambiguous follow-up: should stay on architect, not jump to the tutor.
+    const second = await open42.respond([
+      { role: "student", content: "How should I structure my architecture?" },
+      { role: "mentor", content: "What are you optimising for?" },
+      { role: "student", content: "Hmm, I'm not sure, what do you think?" },
+    ]);
+    expect(second.mentor).toBe("architect");
+  });
+});
+
+describe("context trimming", () => {
+  it("sends at most maxMessages to the provider", async () => {
+    const provider = new CapturingProvider();
+    const open42 = new Open42({ provider, maxMessages: 4 });
+    const transcript: Array<{ role: "student" | "mentor"; content: string }> = [];
+    for (let i = 0; i < 5; i++) {
+      transcript.push({ role: "student", content: `q${i}` });
+      transcript.push({ role: "mentor", content: `a${i}` });
+    }
+    transcript.push({ role: "student", content: "latest" });
+    await open42.respond(transcript);
+    const sent = provider.lastRequest!.messages;
+    expect(sent.length).toBeLessThanOrEqual(4);
+    expect(sent[0]!.role).toBe("user"); // still starts on a student turn
+    expect(sent[sent.length - 1]!.content).toBe("latest");
+  });
+});
+
+describe("compact prompt style", () => {
+  it("is much shorter than full but keeps the core guardrail", async () => {
+    const provider = new CapturingProvider();
+    const compact = new Open42({ provider, promptStyle: "compact" });
+    await compact.respond([{ role: "student", content: "my code crashes" }]);
+    const compactPrompt = provider.lastRequest!.system;
+
+    const full = new Open42({ provider: new CapturingProvider() });
+    const fullPrompt = (full as unknown as { promptFor(id: string): string }).promptFor("tutor");
+
+    expect(compactPrompt).toContain("Socratic coding mentor");
+    expect(compactPrompt.toLowerCase()).toContain("never");
+    expect(compactPrompt.length).toBeLessThan(fullPrompt.length / 2);
   });
 });
 

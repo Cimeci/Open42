@@ -18,7 +18,11 @@ function latestStudentMessage(transcript: readonly Message[]): string {
 export class HeuristicRouter implements Router {
   constructor(private readonly fallbackId?: string) {}
 
-  route(transcript: readonly Message[], mentors: readonly MentorDefinition[]): string {
+  route(
+    transcript: readonly Message[],
+    mentors: readonly MentorDefinition[],
+    current?: string,
+  ): string {
     if (mentors.length === 0) throw new Error("HeuristicRouter: no mentors registered.");
 
     const text = latestStudentMessage(transcript).toLowerCase();
@@ -36,9 +40,10 @@ export class HeuristicRouter implements Router {
       }
     }
 
-    if (bestScore === 0 && this.fallbackId) {
-      const fallback = mentors.find((m) => m.id === this.fallbackId);
-      if (fallback) return fallback.id;
+    // No clear signal: stay with the current mentor (sticky), then the fallback.
+    if (bestScore === 0) {
+      if (current && mentors.some((m) => m.id === current)) return current;
+      if (this.fallbackId && mentors.some((m) => m.id === this.fallbackId)) return this.fallbackId;
     }
     return best.id;
   }
@@ -58,6 +63,7 @@ export class LlmRouter implements Router {
   async route(
     transcript: readonly Message[],
     mentors: readonly MentorDefinition[],
+    current?: string,
   ): Promise<string> {
     if (mentors.length === 0) throw new Error("LlmRouter: no mentors registered.");
 
@@ -74,6 +80,6 @@ export class LlmRouter implements Router {
 
     const picked = result.content.trim().toLowerCase();
     const match = mentors.find((m) => picked.includes(m.id.toLowerCase()));
-    return match?.id ?? this.fallbackId ?? mentors[0]!.id;
+    return match?.id ?? current ?? this.fallbackId ?? mentors[0]!.id;
   }
 }

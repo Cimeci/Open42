@@ -12,7 +12,9 @@ import type {
   MentorDefinition,
   OnTextDelta,
   Open42Reply,
+  PromptStyle,
   Provider,
+  ProviderMessage,
   Rigor,
   Router,
 } from "./types.js";
@@ -38,6 +40,13 @@ export interface Open42Config {
   readonly language?: string;
   /** Learner memory injected into every mentor prompt for continuity. */
   readonly memory?: string;
+  /**
+   * Max number of transcript messages sent to the provider per turn. Older turns
+   * are dropped to keep long sessions within the context window. Default 40.
+   */
+  readonly maxMessages?: number;
+  /** Prompt verbosity. Use "compact" for small/local models. Default "full". */
+  readonly promptStyle?: PromptStyle;
 }
 
 export interface RespondOptions {
@@ -54,6 +63,9 @@ export class Open42 {
   private readonly rigor: Rigor;
   private language?: string;
   private memory?: string;
+  private readonly maxMessages: number;
+  private readonly promptStyle: PromptStyle;
+  private lastMentorId?: string;
   private readonly promptCache = new Map<string, string>();
 
   constructor(config: Open42Config) {
@@ -64,6 +76,8 @@ export class Open42 {
     this.rigor = config.rigor ?? "graduated";
     this.language = config.language;
     this.memory = config.memory;
+    this.maxMessages = config.maxMessages ?? 40;
+    this.promptStyle = config.promptStyle ?? "full";
   }
 
   /** List the available mentors (sub-agents). */
@@ -103,14 +117,10 @@ export class Open42 {
   ): Promise<Open42Reply> {
     assertRespondable(transcript);
 
-    const mentorId = options.mentor
-      ? this.registry.require(options.mentor).id
-      : await this.router.route(transcript, this.registry.list());
-
-    const mentor = this.registry.require(mentorId);
+    const mentor = await this.selectMentor(transcript, options);
     const result = await this.provider.complete({
       system: this.composePrompt(mentor),
-      messages: toProviderMessages(transcript),
+      messages: this.providerMessages(transcript),
     });
 
     return { content: result.content, raw: result.raw, mentor: mentor.id };
@@ -127,16 +137,12 @@ export class Open42 {
   ): Promise<Open42Reply> {
     assertRespondable(transcript);
 
-    const mentorId = options.mentor
-      ? this.registry.require(options.mentor).id
-      : await this.router.route(transcript, this.registry.list());
-
-    const mentor = this.registry.require(mentorId);
+    const mentor = await this.selectMentor(transcript, options);
     handlers.onMentor?.(mentor.id);
 
     const request = {
       system: this.composePrompt(mentor),
-      messages: toProviderMessages(transcript),
+      messages: this.providerMessages(transcript),
     };
 
     if (this.provider.stream) {
@@ -173,6 +179,30 @@ export class Open42 {
     return result.content.trim();
   }
 
+  /** Resolve the mentor for this turn (explicit pin or sticky routing). */
+  private async selectMentor(
+    transcript: readonly Message[],
+    options: RespondOptions,
+  ): Promise<MentorDefinition> {
+    const id = options.mentor
+      ? this.registry.require(options.mentor).id
+      : await this.router.route(transcript, this.registry.list(), this.lastMentorId);
+    const mentor = this.registry.require(id);
+    this.lastMentorId = mentor.id;
+    return mentor;
+  }
+
+  /** Map the transcript to provider messages, trimming old turns for long sessions. */
+  private providerMessages(transcript: readonly Message[]): ProviderMessage[] {
+    let slice = transcript;
+    if (slice.length > this.maxMessages) {
+      slice = slice.slice(slice.length - this.maxMessages);
+      // Drop a leading non-student turn so the message list still starts on the student.
+      while (slice.length > 0 && slice[0]!.role !== "student") slice = slice.slice(1);
+    }
+    return toProviderMessages(slice);
+  }
+
   private composePrompt(mentor: MentorDefinition): string {
     const cached = this.promptCache.get(mentor.id);
     if (cached) return cached;
@@ -180,6 +210,7 @@ export class Open42 {
       rigor: this.rigor,
       language: this.language,
       memory: this.memory,
+      style: this.promptStyle,
     });
     this.promptCache.set(mentor.id, prompt);
     return prompt;

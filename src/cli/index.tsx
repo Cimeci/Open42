@@ -59,6 +59,8 @@ function ChatFlow({ config, onConfig }: { config: CliConfig; onConfig: (c: CliCo
         provider: createProvider(config),
         language: replyLanguageOf(config.language ?? "auto"),
         memory: memoryContextBlock(),
+        // Small local models follow the compact prompt more reliably.
+        promptStyle: config.provider === "ollama" ? "compact" : "full",
       }),
     // Built once; language changes are applied live via open42.setLanguage.
     [],

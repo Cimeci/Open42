@@ -17,6 +17,13 @@ export type Domain =
  */
 export type Rigor = "strict" | "graduated" | "adaptive";
 
+/**
+ * Prompt verbosity. `full` is the detailed prompt (best for capable models);
+ * `compact` is a much shorter prompt that small/local models follow more
+ * reliably, while keeping the core guardrails.
+ */
+export type PromptStyle = "full" | "compact";
+
 /** A turn in the tutoring conversation, from the harness's point of view. */
 export interface Message {
   readonly role: "student" | "mentor";
@@ -126,8 +133,14 @@ export interface Open42Reply extends MentorReply {
  * customise dispatch (heuristic, model-based, rule-based, …).
  */
 export interface Router {
+  /**
+   * Choose the mentor for the next turn. `current` is the mentor that handled the
+   * previous turn, if any; routers may use it to stay put when the new message
+   * carries no clear signal (sticky routing).
+   */
   route(
     transcript: readonly Message[],
     mentors: readonly MentorDefinition[],
+    current?: string,
   ): Promise<string> | string;
 }

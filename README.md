@@ -8,6 +8,31 @@
 
 ![Open42 running in the terminal](docs/open42_cli_screen.png)
 
+## Quick start
+
+Requires Node.js 20+.
+
+```bash
+git clone https://github.com/Cimeci/Open42.git
+cd Open42
+npm install
+npm run demo            # try the full UI right now, no API key needed
+```
+
+Then launch it for real with your own model:
+
+```bash
+npm start                        # on first run, asks which provider you want
+
+# free & local, no API key (start a model first: ollama run llama3.1):
+npm start -- --provider ollama
+
+# or with a hosted key:
+ANTHROPIC_API_KEY=sk-ant-... npm start
+```
+
+(Once published to npm, running it will be as simple as `npx open42`.)
+
 Open42 turns any capable LLM into a team of patient mentors instead of an answer
 machine. It is built in the spirit of [42](https://42.fr)'s pedagogy -
 **autonomy, peer-learning, learning by doing, and the conviction that productive

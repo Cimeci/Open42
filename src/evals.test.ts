@@ -21,7 +21,14 @@ describe("behavioural checks (heuristics)", () => {
   it("accepts a short Socratic question", () => {
     const reply = "What do you expect this line to return, and what does it actually return?";
     const checks = behaviouralChecks(reply);
-    expect(checks.find((c) => c.id === "behaviour/asks-question")?.ok).toBe(true);
+    expect(checks.find((c) => c.id === "behaviour/engages")?.ok).toBe(true);
     expect(checks.find((c) => c.id === "behaviour/no-solution-dump")?.ok).toBe(true);
+  });
+
+  it("accepts a firm refusal that redirects without a question mark", () => {
+    const reply =
+      "As your mentor I won't write it for you. Provide more details and I will guide you step by step.";
+    const checks = behaviouralChecks(reply);
+    expect(checks.find((c) => c.id === "behaviour/engages")?.ok).toBe(true);
   });
 });

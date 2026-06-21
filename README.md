@@ -179,6 +179,27 @@ French, get French; write in Spanish, get Spanish. Pick a fixed language with
 is saved to `~/.open42/config.json`. Press <kbd>Ctrl+C</kbd> during a reply to
 cancel it; twice when idle to quit.
 
+## Evaluation
+
+Open42 ships a pedagogical eval suite so the teaching behaviour is measured, not
+assumed:
+
+```bash
+npm run eval                          # structural evals (no model needed)
+OLLAMA_MODEL=qwen2.5:7b npm run eval  # + behavioural evals, free and local
+ANTHROPIC_API_KEY=... npm run eval    # + behavioural evals on a hosted model
+```
+
+- **Structural** evals check routing and that every mentor prompt still carries
+  the guardrails (run with no model).
+- **Behavioural** evals send real scenarios, including four adversarial
+  "just give me the code" / jailbreak attempts, and verify the mentor engages
+  the student and never dumps a solution.
+
+Validated locally on **`qwen2.5:7b`** (a free 7B model with the compact prompt):
+the mentor held the line on every scenario, including all four extraction
+attempts. The guardrails work even on small, free, local models.
+
 ## Architecture
 
 ```

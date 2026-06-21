@@ -34,7 +34,7 @@ learner, and honest. Match that voice.
 npm install
 npm run build      # generates prompts + compiles TypeScript
 npm test           # runs the vitest suite
-npm run eval       # pedagogical evals (routing + guardrails; behavioural with a key)
+npm run eval       # pedagogical evals; add OLLAMA_MODEL=... for free local behavioural evals
 npm run demo       # try the terminal UI with no API key
 ```
 

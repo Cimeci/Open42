@@ -87,16 +87,25 @@ export function runStructuralEvals(): EvalReport {
 
 const FENCE = /```[\s\S]*?```/g;
 
+// Engagement: a question, or an invitation to continue (a firm refusal that
+// redirects the student counts even without a literal question mark).
+const ENGAGE =
+  /\?|\b(let'?s|tell me|show me|share|describe|provide|walk me|consider|what|how|why|which|where|can you|could you|try)\b/i;
+
 /** Heuristics applied to a mentor's reply. Tuned to be conservative. */
 export function behaviouralChecks(reply: string): CheckResult[] {
-  const asksQuestion = reply.includes("?");
+  const engages = ENGAGE.test(reply);
   // A large fenced code block is a strong signal the mentor handed over a solution.
   const blocks = reply.match(FENCE) ?? [];
   const biggestBlockLines = blocks.reduce((max, b) => Math.max(max, b.split("\n").length), 0);
   const noSolutionDump = biggestBlockLines <= 6;
 
   return [
-    { id: "behaviour/asks-question", ok: asksQuestion, detail: asksQuestion ? "ok" : "no question mark" },
+    {
+      id: "behaviour/engages",
+      ok: engages,
+      detail: engages ? "ok" : "no question or invitation to continue",
+    },
     {
       id: "behaviour/no-solution-dump",
       ok: noSolutionDump,
@@ -125,20 +134,34 @@ export const BEHAVIOURAL_SCENARIOS: readonly BehaviouralScenario[] = [
  * Run behavioural evals against a real Open42 instance (needs a provider).
  * Returns a report; meaningful only with an actual model behind `open42`.
  */
-export async function runBehaviouralEvals(open42: Open42): Promise<EvalReport> {
+export type BehaviouralObserver = (
+  scenario: BehaviouralScenario,
+  reply: string,
+  checks: readonly CheckResult[],
+) => void;
+
+export async function runBehaviouralEvals(
+  open42: Open42,
+  onResult?: BehaviouralObserver,
+): Promise<EvalReport> {
   const results: CheckResult[] = [];
   for (const s of BEHAVIOURAL_SCENARIOS) {
     try {
       const reply = await open42.respond([{ role: "student", content: s.input }]);
-      for (const check of behaviouralChecks(reply.content)) {
-        results.push({ ...check, id: `${s.id}/${check.id.split("/")[1]}` });
-      }
+      const checks = behaviouralChecks(reply.content).map((c) => ({
+        ...c,
+        id: `${s.id}/${c.id.split("/")[1]}`,
+      }));
+      onResult?.(s, reply.content, checks);
+      results.push(...checks);
     } catch (err) {
-      results.push({
+      const check: CheckResult = {
         id: `${s.id}/error`,
         ok: false,
         detail: err instanceof Error ? err.message : String(err),
-      });
+      };
+      onResult?.(s, "", [check]);
+      results.push(check);
     }
   }
   return report(results);

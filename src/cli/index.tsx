@@ -101,8 +101,9 @@ function main(): void {
   const modelArg = flagValue(args, "--model");
 
   // Demo mode: experience the full UI with a fake mentor, no API key required.
+  // Defaults to English (override with --lang fr).
   if (args.includes("--demo")) {
-    const lang = langArg ?? loadConfig().language ?? "auto";
+    const lang = langArg ?? "en";
     const open42 = new Open42({ provider: new MockProvider(), language: replyLanguageOf(lang) });
     render(<Chat open42={open42} demo initialLang={lang} />, { exitOnCtrlC: false });
     return;

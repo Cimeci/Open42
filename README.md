@@ -131,11 +131,11 @@ and `--model <name>`.
 What it looks like:
 
 ```
-you › Ma fonction récursive renvoie undefined, je comprends pas pourquoi.
+you › My recursive function returns undefined, I don’t understand why.
 
 Tutor ›
-Bonne question. Prends le cas le plus simple qui marche déjà : pour n = 1,
-que RENVOIE réellement la ligne qui fait l'appel récursif ? Lis-la à voix haute.
+Good question. Take the simplest case that already works: for n = 1,
+What does the line that makes the recursive call actually RETURN? Read it aloud.
 
 you ›
 ```

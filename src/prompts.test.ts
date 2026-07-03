@@ -24,6 +24,12 @@ describe("composeSystemPrompt", () => {
     expect(prompt).not.toContain("Architecture & design");
   });
 
+  it("includes peer-learning and 42-context when requested", () => {
+    const prompt = composeSystemPrompt({ domains: ["peer-learning", "42-context"] });
+    expect(prompt).toContain("Domain - Peer learning");
+    expect(prompt).toContain("Domain - 42 context");
+  });
+
   it("keeps the canonical domain order regardless of input order", () => {
     const prompt = composeSystemPrompt({ domains: ["review", "debugging"] });
     expect(prompt.indexOf("Guided debugging")).toBeLessThan(prompt.indexOf("Code review"));
@@ -48,7 +54,7 @@ describe("composeSystemPrompt", () => {
     expect(prompt).toContain("Focus on web projects.");
   });
 
-  it("exposes all four domains as the canonical list", () => {
+  it("exposes all four coding domains as the canonical default list", () => {
     expect(ALL_DOMAINS).toEqual(["debugging", "reasoning", "architecture", "review"]);
   });
 });

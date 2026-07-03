@@ -16,9 +16,9 @@ class CapturingProvider implements Provider {
 }
 
 describe("MentorRegistry", () => {
-  it("preloads the four built-in mentors", () => {
+  it("preloads the five built-in mentors", () => {
     const ids = new MentorRegistry().list().map((m) => m.id);
-    expect(ids).toEqual(["tutor", "architect", "reviewer", "ai-coach"]);
+    expect(ids).toEqual(["tutor", "architect", "reviewer", "ai-coach", "peer-coach"]);
   });
 
   it("registers a custom mentor (extensible architecture)", () => {
@@ -68,6 +68,14 @@ describe("HeuristicRouter", () => {
       mentors,
     );
     expect(id).toBe("ai-coach");
+  });
+
+  it("routes a looping/peer-learning question to the peer-coach", () => {
+    const id = new HeuristicRouter("tutor").route(
+      [{ role: "student", content: "I'm stuck in a loop and should ask a classmate to pair." }],
+      mentors,
+    );
+    expect(id).toBe("peer-coach");
   });
 
   it("falls back when nothing matches", () => {

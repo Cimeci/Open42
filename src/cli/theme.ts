@@ -8,6 +8,7 @@ const STYLES: Record<string, MentorStyle> = {
   architect: { label: "Architect", color: "magenta" },
   reviewer: { label: "Reviewer", color: "yellow" },
   "ai-coach": { label: "AI Coach", color: "green" },
+  "peer-coach": { label: "Peer Coach", color: "blue" },
 };
 
 const FALLBACK: MentorStyle = { label: "Mentor", color: "white" };

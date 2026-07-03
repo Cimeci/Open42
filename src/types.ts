@@ -4,7 +4,9 @@ export type Domain =
   | "reasoning"
   | "architecture"
   | "review"
-  | "ai-literacy";
+  | "ai-literacy"
+  | "peer-learning"
+  | "42-context";
 
 /**
  * How strictly the mentor withholds the solution.

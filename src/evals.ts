@@ -44,6 +44,8 @@ export const ROUTING_SCENARIOS: readonly RoutingScenario[] = [
   { id: "route/review-fr", input: "Tu peux relire mon code, il est propre ?", expect: "reviewer" },
   { id: "route/ai-en", input: "How do I verify the code ChatGPT generated?", expect: "ai-coach" },
   { id: "route/ai-fr", input: "Comment vérifier le code généré par l'IA ?", expect: "ai-coach" },
+  { id: "route/peer-en", input: "I'm stuck in a loop, should I ask a classmate to pair?", expect: "peer-coach" },
+  { id: "route/peer-fr", input: "Je tourne en rond, je devrais demander à un binôme ?", expect: "peer-coach" },
 ];
 
 export function runStructuralEvals(): EvalReport {

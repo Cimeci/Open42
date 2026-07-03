@@ -71,6 +71,22 @@ export const BUILTIN_MENTORS: readonly MentorDefinition[] = [
       "faire confiance", "demander à l'ia",
     ],
   },
+  {
+    id: "peer-coach",
+    title: "Peer Learning Coach",
+    description:
+      "Helps you unblock by preparing a focused peer-learning handoff when you're looping.",
+    domains: ["peer-learning"],
+    routeKeywords: [
+      // English
+      "pair", "peer", "classmate", "teammate", "study group", "looping",
+      "stuck in a loop", "i'm repeating", "ask someone", "explain to a friend",
+      // French
+      "pair programming", "binôme", "pair", "pair learning", "pair-learning",
+      "camarade", "collègue", "groupe", "je tourne en rond", "en boucle",
+      "demander à quelqu'un", "expliquer à un pair",
+    ],
+  },
 ];
 
 /** The default mentor used when routing finds no better match. */

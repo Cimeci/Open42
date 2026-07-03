@@ -8,6 +8,20 @@ import { mentorStyle, STUDENT_COLOR, ERROR_COLOR, BRAND_COLOR } from "../theme.j
 import { Banner } from "./Banner.js";
 import { saveSession, listSessions, recentSessions, memoryContextBlock, forgetAll } from "../memory.js";
 import {
+  autonomyLevel,
+  readProgress,
+  recordMemorySaved,
+  recordMentorRequest,
+  recordSelfSolved,
+  recordSession,
+} from "../progress.js";
+import {
+  clearProjectContext,
+  composePromptMemory,
+  getProjectContext,
+  setProjectContext,
+} from "../projectContext.js";
+import {
   strings,
   uiLangOf,
   replyLanguageOf,
@@ -22,6 +36,8 @@ interface Entry {
   content: string;
   mentor?: string;
 }
+
+const REMEMBER_NUDGE_AFTER_STUDENT_TURNS = 4;
 
 function initialEntries(t: Strings, localHint: boolean): Entry[] {
   const entries: Entry[] = [
@@ -58,6 +74,8 @@ export function Chat({
   const [pinned, setPinned] = useState<string | undefined>(undefined);
   const [streaming, setStreaming] = useState<{ mentor: string; text: string } | null>(null);
   const [confirmExit, setConfirmExit] = useState(false);
+  const [project, setProject] = useState<string | undefined>(() => getProjectContext());
+  const [rememberNudged, setRememberNudged] = useState(false);
   const idRef = useRef(2);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -90,6 +108,20 @@ export function Chat({
     return () => clearTimeout(timer);
   }, [confirmExit]);
 
+  useEffect(() => {
+    if (!demo) recordSession();
+  }, [demo]);
+
+  useEffect(() => {
+    if (demo || rememberNudged || exchanges < REMEMBER_NUDGE_AFTER_STUDENT_TURNS) return;
+    push({ role: "system", content: t.rememberNudge });
+    setRememberNudged(true);
+  }, [demo, exchanges, rememberNudged, t.rememberNudge]);
+
+  const refreshMemory = (projectName: string | undefined = project) => {
+    open42.setMemory(composePromptMemory(memoryContextBlock(), projectName));
+  };
+
   const setLanguage = (next: LangChoice) => {
     setChoice(next);
     open42.setLanguage(replyLanguageOf(next));
@@ -113,7 +145,8 @@ export function Chat({
       try {
         const summary = await open42.summarize(transcript);
         const path = saveSession(summary, new Date().toISOString());
-        open42.setMemory(memoryContextBlock());
+        recordMemorySaved();
+        refreshMemory();
         push({ role: "system", content: t.memorySaved(path) });
       } catch (err) {
         push({ role: "error", content: err instanceof Error ? err.message : String(err) });
@@ -131,12 +164,13 @@ export function Chat({
       return;
     }
     const n = forgetAll();
-    open42.setMemory(undefined);
+    refreshMemory();
     push({ role: "system", content: t.memoryForgotten(n) });
   };
 
   const handleCommand = async (text: string) => {
-    const [cmd, arg] = text.slice(1).trim().split(/\s+/, 2);
+    const [cmd, ...rest] = text.slice(1).trim().split(/\s+/);
+    const arg = rest.join(" ").trim() || undefined;
     switch (cmd) {
       case "remember":
       case "memory":
@@ -181,6 +215,47 @@ export function Chat({
         setLanguage(v);
         return;
       }
+      case "progress": {
+        const progress = readProgress();
+        const level = autonomyLevel(progress);
+        const levelLabel =
+          level === "autonomous"
+            ? t.progressLevelAutonomous
+            : level === "growing"
+              ? t.progressLevelGrowing
+              : t.progressLevelStarter;
+        push({
+          role: "system",
+          content: t.progressSummary({ ...progress, level: levelLabel }),
+        });
+        return;
+      }
+      case "solved":
+        recordSelfSolved();
+        push({ role: "system", content: t.solvedMarked });
+        return;
+      case "project": {
+        if (!arg) {
+          push({ role: "system", content: project ? t.projectCurrent(project) : t.projectEmpty });
+          return;
+        }
+        if (arg.toLowerCase() === "clear") {
+          clearProjectContext();
+          setProject(undefined);
+          refreshMemory(undefined);
+          push({ role: "system", content: t.projectCleared });
+          return;
+        }
+        try {
+          const value = setProjectContext(arg);
+          setProject(value);
+          refreshMemory(value);
+          push({ role: "system", content: t.projectSet(value) });
+        } catch {
+          push({ role: "error", content: t.projectUsage });
+        }
+        return;
+      }
       case "clear":
         setEntries(initialEntries(t, localHint));
         setTranscript([]);
@@ -206,6 +281,7 @@ export function Chat({
     const nextTranscript: Message[] = [...transcript, { role: "student", content: text }];
     setTranscript(nextTranscript);
     push({ role: "student", content: text });
+    if (!demo) recordMentorRequest();
 
     const controller = new AbortController();
     abortRef.current = controller;

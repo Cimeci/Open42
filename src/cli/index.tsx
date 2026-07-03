@@ -16,6 +16,7 @@ import { Onboarding } from "./components/Onboarding.js";
 import { Chat } from "./components/Chat.js";
 import { MockProvider } from "./mockProvider.js";
 import { memoryContextBlock } from "./memory.js";
+import { composePromptMemory, getProjectContext } from "./projectContext.js";
 import { replyLanguageOf, type LangChoice } from "./i18n.js";
 
 const HELP_TEXT = `Open42 - Socratic mentors in your terminal
@@ -54,12 +55,13 @@ function parseProviderArg(args: string[]): ProviderName | undefined {
 }
 
 function ChatFlow({ config, onConfig }: { config: CliConfig; onConfig: (c: CliConfig) => void }) {
+  const memory = composePromptMemory(memoryContextBlock(), getProjectContext());
   const open42 = useMemo(
     () =>
       new Open42({
         provider: createProvider(config),
         language: replyLanguageOf(config.language ?? "auto"),
-        memory: memoryContextBlock(),
+        memory,
         // Small local models follow the compact prompt more reliably.
         promptStyle: config.provider === "ollama" ? "compact" : "full",
       }),

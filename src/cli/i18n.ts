@@ -48,6 +48,23 @@ export interface Strings {
   memoryHeader: (n: number) => string;
   memoryForgotten: (n: number) => string;
   memoryDemoDisabled: string;
+  rememberNudge: string;
+  solvedMarked: string;
+  progressSummary: (args: {
+    sessions: number;
+    mentorRequests: number;
+    savedMemories: number;
+    selfSolved: number;
+    level: string;
+  }) => string;
+  progressLevelStarter: string;
+  progressLevelGrowing: string;
+  progressLevelAutonomous: string;
+  projectUsage: string;
+  projectCurrent: (name: string) => string;
+  projectEmpty: string;
+  projectSet: (name: string) => string;
+  projectCleared: string;
 }
 
 const FR: Strings = {
@@ -69,6 +86,11 @@ const FR: Strings = {
     "/remember        sauvegarde un résumé de la session (mémoire locale)",
     "/memory          affiche ce qui est mémorisé",
     "/forget          efface toute la mémoire",
+    "/progress        affiche ton résumé d'autonomie local",
+    "/solved          marque une étape résolue par toi-même",
+    "/project         affiche le contexte projet actif",
+    "/project <nom>   définit le contexte projet actif",
+    "/project clear   efface le contexte projet",
     "/clear           efface la conversation",
     "/quit            quitte",
   ].join("\n"),
@@ -106,6 +128,26 @@ const FR: Strings = {
   memoryHeader: (n) => `Mémoire : ${n} session${n === 1 ? "" : "s"} enregistrée${n === 1 ? "" : "s"}.`,
   memoryForgotten: (n) => `Mémoire effacée (${n} session${n === 1 ? "" : "s"} supprimée${n === 1 ? "" : "s"}).`,
   memoryDemoDisabled: "La mémoire est désactivée en mode démo.",
+  rememberNudge:
+    "Tu sembles bien avancer. Pense à /remember pour garder une trace locale de ce que tu as compris.",
+  solvedMarked: "Étape marquée comme résolue par toi-même.",
+  progressSummary: ({ sessions, mentorRequests, savedMemories, selfSolved, level }) =>
+    [
+      "Progression locale :",
+      `- niveau d'autonomie : ${level}`,
+      `- sessions : ${sessions}`,
+      `- demandes mentor : ${mentorRequests}`,
+      `- souvenirs enregistrés : ${savedMemories}`,
+      `- étapes auto-résolues : ${selfSolved}`,
+    ].join("\n"),
+  progressLevelStarter: "démarrage",
+  progressLevelGrowing: "en progression",
+  progressLevelAutonomous: "autonome",
+  projectUsage: "Usage : /project | /project <nom> | /project clear",
+  projectCurrent: (name) => `Contexte projet actif : ${name}`,
+  projectEmpty: "Aucun contexte projet actif.",
+  projectSet: (name) => `Contexte projet défini : ${name}`,
+  projectCleared: "Contexte projet effacé.",
 };
 
 const EN: Strings = {
@@ -127,6 +169,11 @@ const EN: Strings = {
     "/remember        save a summary of this session (local memory)",
     "/memory          show what is remembered",
     "/forget          erase all memory",
+    "/progress        show your local autonomy summary",
+    "/solved          mark one step as self-solved",
+    "/project         show active project context",
+    "/project <name>  set active project context",
+    "/project clear   clear project context",
     "/clear           clear the conversation",
     "/quit            quit",
   ].join("\n"),
@@ -163,6 +210,26 @@ const EN: Strings = {
   memoryHeader: (n) => `Memory: ${n} session${n === 1 ? "" : "s"} saved.`,
   memoryForgotten: (n) => `Memory erased (${n} session${n === 1 ? "" : "s"} removed).`,
   memoryDemoDisabled: "Memory is disabled in demo mode.",
+  rememberNudge:
+    "You are making progress. Consider /remember to save a short local note of what you learned.",
+  solvedMarked: "Marked one self-solved step.",
+  progressSummary: ({ sessions, mentorRequests, savedMemories, selfSolved, level }) =>
+    [
+      "Local progress:",
+      `- autonomy level: ${level}`,
+      `- sessions: ${sessions}`,
+      `- mentor requests: ${mentorRequests}`,
+      `- saved memories: ${savedMemories}`,
+      `- self-solved steps: ${selfSolved}`,
+    ].join("\n"),
+  progressLevelStarter: "starter",
+  progressLevelGrowing: "growing",
+  progressLevelAutonomous: "autonomous",
+  projectUsage: "Usage: /project | /project <name> | /project clear",
+  projectCurrent: (name) => `Active project context: ${name}`,
+  projectEmpty: "No active project context.",
+  projectSet: (name) => `Project context set: ${name}`,
+  projectCleared: "Project context cleared.",
 };
 
 export function strings(lang: UiLang): Strings {

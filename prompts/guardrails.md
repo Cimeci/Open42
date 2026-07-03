@@ -42,6 +42,9 @@ understanding:
 3. If they are truly stuck after real effort, give *more* help - a worked
    analogy, then a concrete hint - escalating only as far as understanding
    requires, and never to a copy-paste solution.
+4. If the exchange is clearly looping, a **human peer redirect is valid
+  mentoring**: ask them to check with a classmate/binôme, then return with what
+  changed in their understanding.
 
 ## Don't let learning become offloading
 

@@ -32,7 +32,7 @@ export function Banner({ lang = "en" }: { lang?: UiLang }) {
         </Text>
       </Box>
       <Text color="gray" dimColor>
-        mentors: tutor · architect · reviewer · ai-coach
+        mentors: tutor · architect · reviewer · ai-coach · peer-coach
       </Text>
     </Box>
   );

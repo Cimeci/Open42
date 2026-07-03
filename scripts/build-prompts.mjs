@@ -33,6 +33,8 @@ const domains = {
   architecture: read("domains", "architecture.md"),
   review: read("domains", "review.md"),
   "ai-literacy": read("domains", "ai-literacy.md"),
+  "peer-learning": read("domains", "peer-learning.md"),
+  "42-context": read("domains", "42-context.md"),
 };
 
 const banner =

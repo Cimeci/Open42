@@ -15,6 +15,8 @@ const DOMAIN_ORDER: readonly Domain[] = [
   "architecture",
   "review",
   "ai-literacy",
+  "peer-learning",
+  "42-context",
 ];
 
 /** The coding domains enabled by default for the base mentor. */
@@ -75,6 +77,10 @@ const COMPACT_DOMAINS: Record<Domain, string> = {
     "Code review: ask about readability, naming, edge cases, error handling, and security so they find the issues themselves. Don't rewrite their code.",
   "ai-literacy":
     "AI literacy: coach them to decompose before prompting, verify outputs, understand before using, judge when NOT to use AI, and debug the AI's mistakes.",
+  "peer-learning":
+    "Peer learning: when they loop, help them prepare a crisp peer handoff with one-sentence context, what was tried, and one focused question.",
+  "42-context":
+    "42 context: account for school constraints and active project context while keeping the student in charge of reasoning and implementation.",
 };
 
 const COMPACT_RIGOR: Record<Rigor, string> = {

@@ -17,6 +17,7 @@ export interface Strings {
   quitHint: string;
   help: string;
   autoRouting: string;
+  logoutDemoDisabled: string;
   helpHint: string;
   contextNew: string;
   context: (exchanges: number, pinned?: string) => string;
@@ -30,17 +31,30 @@ export interface Strings {
   langSet: (label: string) => string;
   langUsage: string;
   langAutoLabel: string;
-  onboardingTitle: string;
-  onboardingHint: string;
   keyLabel: string;
   langPickHint: (label: string) => string;
-  emptyKeyError: string;
-  providerQuestion: string;
-  providerAnthropic: string;
-  providerOpenAI: string;
-  providerLocal: string;
+  connectTitle: string;
+  connectPasteToken: string;
+  connectWeb: string;
+  useLocal: string;
+  tokenPrompt: string;
+  tokenUnknown: string;
+  webOpening: string;
+  webUrlFallback: (url: string) => string;
+  webError: (message: string) => string;
+  webRetryHint: string;
+  localConnecting: string;
   selectHint: string;
   localReady: string;
+  modelDemoDisabled: string;
+  modelCurrent: (provider: string, model: string) => string;
+  modelUsage: string;
+  modelDetecting: string;
+  localModelsHeader: string;
+  noLocalModels: string;
+  modelChanged: (provider: string, model: string) => string;
+  modelNeedsKey: (provider: string) => string;
+  modelNeedsBaseUrl: string;
   memorySaving: string;
   memorySaved: (path: string) => string;
   memoryNothing: string;
@@ -82,6 +96,7 @@ const FR: Strings = {
     "/mentors         liste les mentors disponibles",
     "/mentor <id>     fixe un mentor (ex: /mentor ai-coach)",
     "/auto            reprend le routage automatique",
+    "/model           change d'IA ou de modèle (ex: /model ollama qwen2.5-coder)",
     "/lang <auto|fr|en>  change la langue",
     "/remember        sauvegarde un résumé de la session (mémoire locale)",
     "/memory          affiche ce qui est mémorisé",
@@ -91,10 +106,12 @@ const FR: Strings = {
     "/project         affiche le contexte projet actif",
     "/project <nom>   définit le contexte projet actif",
     "/project clear   efface le contexte projet",
+    "/logout          se déconnecter (revenir à l'écran de connexion)",
     "/clear           efface la conversation",
     "/quit            quitte",
   ].join("\n"),
   autoRouting: "routage auto",
+  logoutDemoDisabled: "La déconnexion est indisponible en mode démo.",
   helpHint: "/help",
   contextNew: "Contexte : nouvelle conversation.",
   context: (n, pinned) =>
@@ -109,18 +126,34 @@ const FR: Strings = {
   langSet: (label) => `Langue : ${label}.`,
   langUsage: "Usage : /lang auto | fr | en",
   langAutoLabel: "automatique (langue de l'étudiant)",
-  onboardingTitle: "Bienvenue ! Colle une clé API pour commencer.",
-  onboardingHint: "Anthropic (sk-ant-…) ou OpenAI (sk-…). Sauvegardée dans ~/.open42/config.json.",
   keyLabel: "clé",
   langPickHint: (label) => `Langue : ‹ ${label} ›  (Tab pour changer)`,
-  emptyKeyError: "Merci de coller une clé non vide.",
-  providerQuestion: "Que veux-tu utiliser ?",
-  providerAnthropic: "Anthropic (Claude) : avec une clé API",
-  providerOpenAI: "OpenAI (GPT) : avec une clé API",
-  providerLocal: "Local (Ollama) : gratuit, sans clé",
+  connectTitle: "Aucune IA connectée — connecte-toi :",
+  connectPasteToken: "Coller un token API — Claude, OpenAI, OpenRouter, NVIDIA, Groq…",
+  connectWeb: "Se connecter via le web — OpenRouter, comme Claude Code",
+  useLocal: "Modèle local — gratuit, sur ta machine (Ollama, LM Studio…)",
+  tokenPrompt: "Colle ton token API (on détecte le fournisseur automatiquement) :",
+  tokenUnknown: "Token non reconnu. Attendu : sk-ant-…, sk-…, sk-or-v1-…, nvapi-…, gsk_…",
+  webOpening: "Ouverture du navigateur… autorise Open42 sur OpenRouter, puis reviens ici.",
+  webUrlFallback: (url) => `Si rien ne s'ouvre, va sur : ${url}`,
+  webError: (message) => `Connexion web échouée : ${message}`,
+  webRetryHint: "Entrée pour revenir au menu.",
+  localConnecting: "Connexion à ton modèle local…",
   selectHint: "↑/↓ puis Entrée · Tab pour la langue",
   localReady:
     "Mode local : lance d'abord un modèle (ex : ollama run llama3.1), puis pose ta question.",
+  modelDemoDisabled: "La commande /model est indisponible en mode démo.",
+  modelCurrent: (provider, model) => `IA actuelle : ${provider} · modèle ${model}`,
+  modelUsage:
+    "Usage : /model <anthropic|openai|ollama|custom> [modèle] · ou /model <n> pour un modèle local détecté.",
+  modelDetecting: "Recherche des modèles locaux en cours…",
+  localModelsHeader: "Modèles locaux détectés :",
+  noLocalModels: "Aucun modèle local détecté (aucun serveur local ne répond).",
+  modelChanged: (provider, model) => `IA changée : ${provider} · modèle ${model}.`,
+  modelNeedsKey: (provider) =>
+    `Aucune clé API pour ${provider}. Définis ${provider === "anthropic" ? "ANTHROPIC_API_KEY" : "OPENAI_API_KEY"} dans ton environnement, puis relance /model.`,
+  modelNeedsBaseUrl:
+    "Le provider custom nécessite une URL d'endpoint. Relance avec --provider custom --base-url <url>, ou configure-le à l'onboarding.",
   memorySaving: "Résumé de la session en cours…",
   memorySaved: (path) => `Mémoire enregistrée : ${path}`,
   memoryNothing: "Rien à mémoriser pour l'instant (la conversation est vide).",
@@ -165,6 +198,7 @@ const EN: Strings = {
     "/mentors         list available mentors",
     "/mentor <id>     pin a mentor (e.g. /mentor ai-coach)",
     "/auto            resume automatic routing",
+    "/model           switch AI or model (e.g. /model ollama qwen2.5-coder)",
     "/lang <auto|fr|en>  change the language",
     "/remember        save a summary of this session (local memory)",
     "/memory          show what is remembered",
@@ -174,10 +208,12 @@ const EN: Strings = {
     "/project         show active project context",
     "/project <name>  set active project context",
     "/project clear   clear project context",
+    "/logout          sign out (back to the connection screen)",
     "/clear           clear the conversation",
     "/quit            quit",
   ].join("\n"),
   autoRouting: "auto-routing",
+  logoutDemoDisabled: "Sign-out is unavailable in demo mode.",
   helpHint: "/help",
   contextNew: "Context: new conversation.",
   context: (n, pinned) =>
@@ -192,17 +228,33 @@ const EN: Strings = {
   langSet: (label) => `Language: ${label}.`,
   langUsage: "Usage: /lang auto | fr | en",
   langAutoLabel: "automatic (student's language)",
-  onboardingTitle: "Welcome! Paste an API key to get started.",
-  onboardingHint: "Anthropic (sk-ant-…) or OpenAI (sk-…). Saved to ~/.open42/config.json.",
   keyLabel: "key",
   langPickHint: (label) => `Language: ‹ ${label} ›  (Tab to change)`,
-  emptyKeyError: "Please paste a non-empty API key.",
-  providerQuestion: "What do you want to use?",
-  providerAnthropic: "Anthropic (Claude): with an API key",
-  providerOpenAI: "OpenAI (GPT): with an API key",
-  providerLocal: "Local (Ollama): free, no key",
+  connectTitle: "No AI connected — connect one:",
+  connectPasteToken: "Paste an API key — Claude, OpenAI, OpenRouter, NVIDIA, Groq…",
+  connectWeb: "Connect via the web — OpenRouter, like Claude Code",
+  useLocal: "Local model — free, on your machine (Ollama, LM Studio…)",
+  tokenPrompt: "Paste your API key (we detect the provider automatically):",
+  tokenUnknown: "Unrecognized token. Expected: sk-ant-…, sk-…, sk-or-v1-…, nvapi-…, gsk_…",
+  webOpening: "Opening the browser… authorize Open42 on OpenRouter, then come back here.",
+  webUrlFallback: (url) => `If nothing opens, go to: ${url}`,
+  webError: (message) => `Web sign-in failed: ${message}`,
+  webRetryHint: "Press Enter to go back.",
+  localConnecting: "Connecting to your local model…",
   selectHint: "↑/↓ then Enter · Tab for language",
   localReady: "Local mode: start a model first (e.g. ollama run llama3.1), then ask your question.",
+  modelDemoDisabled: "The /model command is unavailable in demo mode.",
+  modelCurrent: (provider, model) => `Current AI: ${provider} · model ${model}`,
+  modelUsage:
+    "Usage: /model <anthropic|openai|ollama|custom> [model] · or /model <n> to pick a detected local model.",
+  modelDetecting: "Scanning for local models…",
+  localModelsHeader: "Local models detected:",
+  noLocalModels: "No local model detected (no local server responded).",
+  modelChanged: (provider, model) => `Switched AI: ${provider} · model ${model}.`,
+  modelNeedsKey: (provider) =>
+    `No API key for ${provider}. Set ${provider === "anthropic" ? "ANTHROPIC_API_KEY" : "OPENAI_API_KEY"} in your environment, then run /model again.`,
+  modelNeedsBaseUrl:
+    "The custom provider needs an endpoint URL. Relaunch with --provider custom --base-url <url>, or set it during onboarding.",
   memorySaving: "Summarizing the session…",
   memorySaved: (path) => `Memory saved: ${path}`,
   memoryNothing: "Nothing to remember yet (the conversation is empty).",

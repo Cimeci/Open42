@@ -7,7 +7,10 @@ import {
   resolveCredentials,
   createProvider,
   saveConfig,
+  clearConfig,
   isConfigured,
+  isProviderName,
+  promptStyleFor,
   CONFIG_PATH,
   type CliConfig,
   type ProviderName,
@@ -24,16 +27,21 @@ const HELP_TEXT = `Open42 - Socratic mentors in your terminal
 Usage:
   open42                 start the interactive mentor
   open42 --demo          try the full UI with a fake mentor (no API key)
-  open42 --provider <anthropic|openai|ollama>   pick a provider
+  open42 --provider <anthropic|openai|ollama|custom>   pick a provider
   open42 --model <name>  pick a model
+  open42 --base-url <url>   OpenAI-compatible endpoint (for --provider custom)
   open42 --lang <auto|fr|en>   choose the language (default: auto)
+  open42 --logout        forget the saved connection (back to the connect screen)
   open42 --help          show this help
   open42 --version       show the version
 
 Providers:
   anthropic / openai  hosted models (need an API key).
   ollama              free local models, no key (run e.g. \`ollama run llama3.1\`).
-  On first run, Open42 asks which one you want and adapts.
+  custom              any OpenAI-compatible endpoint (LM Studio, vLLM, OpenRouter,
+                      a self-hosted server…) via --base-url.
+  On first run, Open42 asks which one you want and adapts. In session, /model
+  switches provider or model on the fly.
 
 Configuration:
   Set ANTHROPIC_API_KEY or OPENAI_API_KEY in your environment, or paste a key on
@@ -51,7 +59,7 @@ function parseLangArg(args: string[]): LangChoice | undefined {
 
 function parseProviderArg(args: string[]): ProviderName | undefined {
   const value = flagValue(args, "--provider");
-  return value === "anthropic" || value === "openai" || value === "ollama" ? value : undefined;
+  return value !== undefined && isProviderName(value) ? value : undefined;
 }
 
 function ChatFlow({ config, onConfig }: { config: CliConfig; onConfig: (c: CliConfig) => void }) {
@@ -63,20 +71,27 @@ function ChatFlow({ config, onConfig }: { config: CliConfig; onConfig: (c: CliCo
         language: replyLanguageOf(config.language ?? "auto"),
         memory,
         // Small local models follow the compact prompt more reliably.
-        promptStyle: config.provider === "ollama" ? "compact" : "full",
+        promptStyle: promptStyleFor(config),
       }),
-    // Built once; language changes are applied live via open42.setLanguage.
+    // Built once; provider/language changes are applied live via open42.setProvider/setLanguage.
     [],
   );
+  const persist = (next: CliConfig) => {
+    onConfig(next);
+    saveConfig(next);
+  };
   return (
     <Chat
       open42={open42}
+      config={config}
       initialLang={config.language ?? "auto"}
       localHint={config.provider === "ollama"}
-      onLanguageChange={(choice) => {
-        const next = { ...config, language: choice };
-        onConfig(next);
-        saveConfig(next);
+      onLanguageChange={(choice) => persist({ ...config, language: choice })}
+      onConfigChange={persist}
+      onLogout={() => {
+        clearConfig();
+        // Reset to an unconfigured state so Root shows the connection screen again.
+        onConfig({ provider: "anthropic", language: config.language });
       }}
     />
   );
@@ -101,10 +116,16 @@ function main(): void {
     console.log(`open42 ${version}`);
     return;
   }
+  if (args.includes("--logout")) {
+    clearConfig();
+    console.log("Disconnected. Run open42 to connect an AI again.");
+    return;
+  }
 
   const langArg = parseLangArg(args);
   const providerArg = parseProviderArg(args);
   const modelArg = flagValue(args, "--model");
+  const baseUrlArg = flagValue(args, "--base-url");
 
   if (args.includes("--demo")) {
     const lang = langArg ?? "en";
@@ -117,12 +138,21 @@ function main(): void {
     ...resolveCredentials(loadConfig()),
     ...(providerArg ? { provider: providerArg } : {}),
     ...(modelArg ? { model: modelArg } : {}),
+    ...(baseUrlArg ? { baseUrl: baseUrlArg } : {}),
     ...(langArg ? { language: langArg } : {}),
   };
 
+  if (config.provider === "custom" && !config.baseUrl) {
+    console.error(
+      "The custom provider needs an endpoint: pass --base-url <url> (an OpenAI-compatible chat-completions URL).",
+    );
+    process.exitCode = 1;
+    return;
+  }
+
   if (!isConfigured(config) && !process.stdin.isTTY) {
     console.error(
-      "No provider configured. Set ANTHROPIC_API_KEY / OPENAI_API_KEY, pass --provider ollama for local, or run open42 in an interactive terminal.",
+      "No provider configured. Set ANTHROPIC_API_KEY / OPENAI_API_KEY, pass --provider ollama for local, --provider custom --base-url <url>, or run open42 in an interactive terminal.",
     );
     process.exitCode = 1;
     return;

@@ -19,10 +19,12 @@ describe("TUI rendering (no TTY required)", () => {
     expect(lastFrame()).toContain("Learn by understanding");
   });
 
-  it("starts onboarding by asking which provider to use (en)", () => {
+  it("shows a connection screen with the three connect modes (en)", () => {
     const { lastFrame } = render(<Onboarding onDone={() => {}} initialLang="en" />);
-    expect(lastFrame()).toContain("What do you want to use?");
-    expect(lastFrame()).toContain("Local (Ollama)");
+    expect(lastFrame()).toContain("No AI connected");
+    expect(lastFrame()).toContain("Paste an API key");
+    expect(lastFrame()).toContain("Connect via the web");
+    expect(lastFrame()).toContain("Local model");
   });
 
   it("renders a localized chat input prompt", () => {

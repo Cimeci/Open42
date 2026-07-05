@@ -262,6 +262,43 @@ describe("Open42.setLanguage", () => {
   });
 });
 
+describe("Open42.setProvider", () => {
+  it("routes the next turn through the newly set provider (hot-swap)", async () => {
+    const first = new CapturingProvider("first reply");
+    const second = new CapturingProvider("second reply");
+    const open42 = new Open42({ provider: first });
+
+    open42.setProvider(second);
+    const reply = await open42.respond([{ role: "student", content: "hello" }]);
+
+    expect(reply.content).toBe("second reply");
+    expect(second.lastRequest).not.toBeNull();
+    expect(first.lastRequest).toBeNull();
+  });
+
+  it("throws when handed no provider", () => {
+    const open42 = new Open42({ provider: new CapturingProvider() });
+    expect(() => open42.setProvider(undefined as unknown as Provider)).toThrow(/provider is required/);
+  });
+});
+
+describe("Open42.setPromptStyle", () => {
+  it("switches between the full and compact system prompts", async () => {
+    const provider = new CapturingProvider();
+    const open42 = new Open42({ provider, promptStyle: "full" });
+
+    await open42.respond([{ role: "student", content: "hello" }]);
+    const fullPrompt = provider.lastRequest?.system ?? "";
+
+    open42.setPromptStyle("compact");
+    await open42.respond([{ role: "student", content: "hello" }]);
+    const compactPrompt = provider.lastRequest?.system ?? "";
+
+    expect(compactPrompt).not.toBe(fullPrompt);
+    expect(compactPrompt.length).toBeLessThan(fullPrompt.length);
+  });
+});
+
 describe("sticky routing", () => {
   it("stays with the current mentor when a follow-up has no clear signal", async () => {
     const provider = new CapturingProvider();

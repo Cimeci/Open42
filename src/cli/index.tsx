@@ -62,7 +62,15 @@ function parseProviderArg(args: string[]): ProviderName | undefined {
   return value !== undefined && isProviderName(value) ? value : undefined;
 }
 
-function ChatFlow({ config, onConfig }: { config: CliConfig; onConfig: (c: CliConfig) => void }) {
+function ChatFlow({
+  config,
+  onConfig,
+  onReconnect,
+}: {
+  config: CliConfig;
+  onConfig: (c: CliConfig) => void;
+  onReconnect: () => void;
+}) {
   const memory = composePromptMemory(memoryContextBlock(), getProjectContext());
   const open42 = useMemo(
     () =>
@@ -93,16 +101,29 @@ function ChatFlow({ config, onConfig }: { config: CliConfig; onConfig: (c: CliCo
         // Reset to an unconfigured state so Root shows the connection screen again.
         onConfig({ provider: "anthropic", language: config.language });
       }}
+      onReconnect={onReconnect}
     />
   );
 }
 
 function Root({ initial }: { initial: CliConfig }) {
   const [config, setConfig] = useState<CliConfig>(initial);
-  if (!isConfigured(config)) {
-    return <Onboarding initialLang={config.language ?? "auto"} onDone={setConfig} />;
+  // `/model` reopens the connection screen without dropping the saved config.
+  const [reconnecting, setReconnecting] = useState(false);
+  if (reconnecting || !isConfigured(config)) {
+    return (
+      <Onboarding
+        initialLang={config.language ?? "auto"}
+        onDone={(next) => {
+          setConfig(next);
+          setReconnecting(false);
+        }}
+      />
+    );
   }
-  return <ChatFlow config={config} onConfig={setConfig} />;
+  return (
+    <ChatFlow config={config} onConfig={setConfig} onReconnect={() => setReconnecting(true)} />
+  );
 }
 
 function main(): void {

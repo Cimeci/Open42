@@ -47,11 +47,6 @@ export interface Strings {
   selectHint: string;
   localReady: string;
   modelDemoDisabled: string;
-  modelCurrent: (provider: string, model: string) => string;
-  modelUsage: string;
-  modelDetecting: string;
-  localModelsHeader: string;
-  noLocalModels: string;
   modelChanged: (provider: string, model: string) => string;
   modelNeedsKey: (provider: string) => string;
   modelNeedsBaseUrl: string;
@@ -96,7 +91,7 @@ const FR: Strings = {
     "/mentors         liste les mentors disponibles",
     "/mentor <id>     fixe un mentor (ex: /mentor ai-coach)",
     "/auto            reprend le routage automatique",
-    "/model           change d'IA ou de modèle (ex: /model ollama qwen2.5-coder)",
+    "/model           rouvre l'écran de connexion · ou /model <ia> [modèle] pour un changement rapide",
     "/lang <auto|fr|en>  change la langue",
     "/remember        sauvegarde un résumé de la session (mémoire locale)",
     "/memory          affiche ce qui est mémorisé",
@@ -143,12 +138,6 @@ const FR: Strings = {
   localReady:
     "Mode local : lance d'abord un modèle (ex : ollama run llama3.1), puis pose ta question.",
   modelDemoDisabled: "La commande /model est indisponible en mode démo.",
-  modelCurrent: (provider, model) => `IA actuelle : ${provider} · modèle ${model}`,
-  modelUsage:
-    "Usage : /model <anthropic|openai|ollama|custom> [modèle] · ou /model <n> pour un modèle local détecté.",
-  modelDetecting: "Recherche des modèles locaux en cours…",
-  localModelsHeader: "Modèles locaux détectés :",
-  noLocalModels: "Aucun modèle local détecté (aucun serveur local ne répond).",
   modelChanged: (provider, model) => `IA changée : ${provider} · modèle ${model}.`,
   modelNeedsKey: (provider) =>
     `Aucune clé API pour ${provider}. Définis ${provider === "anthropic" ? "ANTHROPIC_API_KEY" : "OPENAI_API_KEY"} dans ton environnement, puis relance /model.`,
@@ -198,7 +187,7 @@ const EN: Strings = {
     "/mentors         list available mentors",
     "/mentor <id>     pin a mentor (e.g. /mentor ai-coach)",
     "/auto            resume automatic routing",
-    "/model           switch AI or model (e.g. /model ollama qwen2.5-coder)",
+    "/model           reopen the connection screen · or /model <ai> [model] for a quick switch",
     "/lang <auto|fr|en>  change the language",
     "/remember        save a summary of this session (local memory)",
     "/memory          show what is remembered",
@@ -244,12 +233,6 @@ const EN: Strings = {
   selectHint: "↑/↓ then Enter · Tab for language",
   localReady: "Local mode: start a model first (e.g. ollama run llama3.1), then ask your question.",
   modelDemoDisabled: "The /model command is unavailable in demo mode.",
-  modelCurrent: (provider, model) => `Current AI: ${provider} · model ${model}`,
-  modelUsage:
-    "Usage: /model <anthropic|openai|ollama|custom> [model] · or /model <n> to pick a detected local model.",
-  modelDetecting: "Scanning for local models…",
-  localModelsHeader: "Local models detected:",
-  noLocalModels: "No local model detected (no local server responded).",
   modelChanged: (provider, model) => `Switched AI: ${provider} · model ${model}.`,
   modelNeedsKey: (provider) =>
     `No API key for ${provider}. Set ${provider === "anthropic" ? "ANTHROPIC_API_KEY" : "OPENAI_API_KEY"} in your environment, then run /model again.`,

@@ -163,7 +163,7 @@ function main(): void {
     ...(langArg ? { language: langArg } : {}),
   };
 
-  if (config.provider === "custom" && !config.baseUrl) {
+  if (config.provider === "custom" && !config.baseUrl && !process.stdin.isTTY) {
     console.error(
       "The custom provider needs an endpoint: pass --base-url <url> (an OpenAI-compatible chat-completions URL).",
     );

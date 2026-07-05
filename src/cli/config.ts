@@ -1,6 +1,6 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, chmodSync } from "node:fs";
 import { AnthropicProvider } from "../providers/anthropic.js";
 import { OpenAIProvider } from "../providers/openai.js";
 import { OllamaProvider } from "../providers/ollama.js";
@@ -49,9 +49,17 @@ export function loadConfig(): CliConfig {
 }
 
 export function saveConfig(config: CliConfig): void {
-  // Owner-only: the directory and file may hold an API key.
+  // Owner-only: the directory and file may hold an API key. The `mode` option on
+  // mkdir/writeFile only applies when creating, so chmod unconditionally to also
+  // fix a pre-existing file/dir left world-readable (e.g. on a shared machine).
   if (!existsSync(CONFIG_DIR)) mkdirSync(CONFIG_DIR, { recursive: true, mode: 0o700 });
+  try {
+    chmodSync(CONFIG_DIR, 0o700);
+  } catch {
+    // Best-effort: keep going even if we can't tighten the directory.
+  }
   writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), { mode: 0o600 });
+  chmodSync(CONFIG_FILE, 0o600);
 }
 
 export const CONFIG_PATH = CONFIG_FILE;
@@ -73,33 +81,42 @@ export function envKeyFor(provider: ProviderName): string | undefined {
 }
 
 /**
- * Resolve the effective key + provider. Environment variables win over the saved
- * config, so a key in the shell is never overridden by a stale file.
+ * Resolve the effective key for a hosted provider from the environment. A shell
+ * key fills a hosted provider that has none, but a locally-chosen provider is
+ * never overridden: `ollama` and `custom` intentionally run without a key, so an
+ * `ANTHROPIC_API_KEY`/`OPENAI_API_KEY` lying around must not silently hijack them.
  */
-export function resolveCredentials(config: CliConfig): CliConfig & { apiKey?: string } {
+export function resolveCredentials(config: CliConfig): CliConfig {
+  // Local and custom providers never use an env key — leave them untouched.
+  if (config.provider === "ollama" || config.provider === "custom") return config;
+
   const envAnthropic = process.env.ANTHROPIC_API_KEY;
   const envOpenai = process.env.OPENAI_API_KEY;
 
-  if (config.provider === "anthropic" && envAnthropic) {
-    return { ...config, apiKey: envAnthropic };
-  }
-  if (config.provider === "openai" && envOpenai) {
-    return { ...config, apiKey: envOpenai };
-  }
-  // No provider preference yet: take whichever env key exists.
-  if (!config.apiKey && envAnthropic) return { provider: "anthropic", apiKey: envAnthropic };
-  if (!config.apiKey && envOpenai) return { provider: "openai", apiKey: envOpenai };
+  if (config.provider === "anthropic" && envAnthropic) return { ...config, apiKey: envAnthropic };
+  if (config.provider === "openai" && envOpenai) return { ...config, apiKey: envOpenai };
+
+  // Hosted provider without a saved key: adopt whichever env key exists.
+  if (!config.apiKey && envAnthropic) return { ...config, provider: "anthropic", apiKey: envAnthropic };
+  if (!config.apiKey && envOpenai) return { ...config, provider: "openai", apiKey: envOpenai };
 
   return config;
 }
 
+const LOCAL_HOST_PATTERN = /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])(:|\/|$)/i;
+
+const isLocalUrl = (url?: string): boolean => Boolean(url && LOCAL_HOST_PATTERN.test(url));
+
 /**
  * A config is ready to run when it has what its provider needs: a local runtime
- * needs nothing, a custom endpoint needs a URL, hosted providers need a key.
+ * needs nothing, a local custom endpoint needs only its URL, a remote custom
+ * endpoint and hosted providers need a key.
  */
 export function isConfigured(config: CliConfig): boolean {
   if (config.provider === "ollama") return true;
-  if (config.provider === "custom") return Boolean(config.baseUrl);
+  if (config.provider === "custom") {
+    return Boolean(config.baseUrl) && (isLocalUrl(config.baseUrl) || Boolean(config.apiKey));
+  }
   return Boolean(config.apiKey);
 }
 
@@ -109,6 +126,9 @@ export function createProvider(config: CliConfig): Provider {
   }
   if (config.provider === "custom") {
     if (!config.baseUrl) throw new Error("No endpoint URL configured for the custom provider.");
+    if (!/^https?:\/\//i.test(config.baseUrl)) {
+      throw new Error("The custom endpoint URL must start with http:// or https://.");
+    }
     // Local endpoints ignore the key; the OpenAI shape still expects one.
     return new OpenAIProvider({
       apiKey: config.apiKey ?? "none",
@@ -123,16 +143,12 @@ export function createProvider(config: CliConfig): Provider {
   return new OpenAIProvider({ apiKey: config.apiKey, model: config.model });
 }
 
-const LOCAL_HOST_PATTERN = /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])(:|\/|$)/i;
-
 /**
  * The prompt style a provider should use. Local small models follow the compact
  * prompt more reliably, so use it for Ollama and any localhost custom endpoint.
  */
 export function promptStyleFor(config: Pick<CliConfig, "provider" | "baseUrl">): PromptStyle {
   if (config.provider === "ollama") return "compact";
-  if (config.provider === "custom" && config.baseUrl && LOCAL_HOST_PATTERN.test(config.baseUrl)) {
-    return "compact";
-  }
+  if (config.provider === "custom" && isLocalUrl(config.baseUrl)) return "compact";
   return "full";
 }

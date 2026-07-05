@@ -1,4 +1,16 @@
-const KEY_PATTERN = /(sk-[A-Za-z0-9_-]{6,})/g;
+/** Default per-request timeout (ms) so a dead endpoint can't hang the CLI forever. */
+export const REQUEST_TIMEOUT_MS = 120_000;
+
+// Prefixes of the API keys Open42 accepts (see HOSTED_PRESETS[].keyPrefix):
+// sk- (OpenAI, Anthropic sk-ant-, OpenRouter sk-or-v1-), nvapi- (NVIDIA), gsk_ (Groq).
+// Kept here (a low-level module) to avoid a providers→cli dependency; a test in
+// util.test.ts asserts this stays in sync with HOSTED_PRESETS.
+const KEY_PATTERN = /(sk-|nvapi-|gsk_)[A-Za-z0-9_-]{6,}/g;
+
+/** Mask anything that looks like an API key, keeping the prefix for context. */
+export function redactKeys(text: string): string {
+  return text.replace(KEY_PATTERN, (_match, prefix: string) => `${prefix}***`);
+}
 
 /**
  * Read a non-OK response body for an error message, truncated and with anything
@@ -7,7 +19,7 @@ const KEY_PATTERN = /(sk-[A-Za-z0-9_-]{6,})/g;
 export async function safeErrorDetail(response: Response): Promise<string> {
   try {
     const text = await response.text();
-    return text.slice(0, 500).replace(KEY_PATTERN, "sk-***");
+    return redactKeys(text.slice(0, 500));
   } catch {
     return "<no body>";
   }

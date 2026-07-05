@@ -6,6 +6,7 @@ import { saveConfig, type CliConfig } from "../config.js";
 import { strings, uiLangOf, type LangChoice } from "../i18n.js";
 import { configForPreset, identifyToken } from "../hostedPresets.js";
 import { detectLocalModels } from "../../providers/localModels.js";
+import { DEFAULT_OLLAMA_MODEL } from "../../providers/ollama.js";
 
 const LANG_CYCLE: LangChoice[] = ["auto", "fr", "en"];
 
@@ -42,17 +43,28 @@ export function Onboarding({
   useEffect(() => {
     if (phase !== "local") return;
     let active = true;
-    detectLocalModels().then((models) => {
-      if (!active) return;
-      const first = models[0];
-      finish(
-        first
-          ? first.runtime === "ollama"
-            ? { provider: "ollama", model: first.model, language: choice }
-            : { provider: "custom", model: first.model, baseUrl: first.chatUrl, language: choice }
-          : { provider: "ollama", model: "llama3.1", language: choice },
-      );
+    const fallback = (): CliConfig => ({
+      provider: "ollama",
+      model: DEFAULT_OLLAMA_MODEL,
+      language: choice,
     });
+    detectLocalModels()
+      .then((models) => {
+        if (!active) return;
+        const first = models[0];
+        finish(
+          first
+            ? first.runtime === "ollama"
+              ? { provider: "ollama", model: first.model, language: choice }
+              : { provider: "custom", model: first.model, baseUrl: first.chatUrl, language: choice }
+            : fallback(),
+        );
+      })
+      // detectLocalModels is documented never to reject, but stay defensive:
+      // an unhandled rejection would crash the process instead of degrading.
+      .catch(() => {
+        if (active) finish(fallback());
+      });
     return () => {
       active = false;
     };

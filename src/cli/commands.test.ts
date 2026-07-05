@@ -41,6 +41,11 @@ describe("filterCommands", () => {
     expect(filterCommands(cmds, "mento").map((c) => c.name)).toEqual(["mentors", "mentor"]);
   });
 
+  it("floats an exact match to the top (typing /mentor selects mentor, not mentors)", () => {
+    expect(filterCommands(cmds, "mentor").map((c) => c.name)).toEqual(["mentor", "mentors"]);
+    expect(filterCommands(cmds, "help").map((c) => c.name)).toEqual(["help"]);
+  });
+
   it("is case-insensitive and returns nothing for an unknown query", () => {
     expect(filterCommands(cmds, "HELP").map((c) => c.name)).toEqual(["help"]);
     expect(filterCommands(cmds, "zzz")).toEqual([]);

@@ -35,23 +35,13 @@ export interface Strings {
   langPickHint: (label: string) => string;
   connectTitle: string;
   connectPasteToken: string;
-  connectWeb: string;
   useLocal: string;
   tokenPrompt: string;
   tokenUnknown: string;
-  webOpening: string;
-  webUrlFallback: (url: string) => string;
-  webError: (message: string) => string;
-  webRetryHint: string;
   localConnecting: string;
   selectHint: string;
   localReady: string;
   modelDemoDisabled: string;
-  modelCurrent: (provider: string, model: string) => string;
-  modelUsage: string;
-  modelDetecting: string;
-  localModelsHeader: string;
-  noLocalModels: string;
   modelChanged: (provider: string, model: string) => string;
   modelNeedsKey: (provider: string) => string;
   modelNeedsBaseUrl: string;
@@ -96,7 +86,7 @@ const FR: Strings = {
     "/mentors         liste les mentors disponibles",
     "/mentor <id>     fixe un mentor (ex: /mentor ai-coach)",
     "/auto            reprend le routage automatique",
-    "/model           change d'IA ou de modèle (ex: /model ollama qwen2.5-coder)",
+    "/model           rouvre l'écran de connexion · ou /model <ia> [modèle] pour un changement rapide",
     "/lang <auto|fr|en>  change la langue",
     "/remember        sauvegarde un résumé de la session (mémoire locale)",
     "/memory          affiche ce qui est mémorisé",
@@ -130,25 +120,14 @@ const FR: Strings = {
   langPickHint: (label) => `Langue : ‹ ${label} ›  (Tab pour changer)`,
   connectTitle: "Aucune IA connectée — connecte-toi :",
   connectPasteToken: "Coller un token API — Claude, OpenAI, OpenRouter, NVIDIA, Groq…",
-  connectWeb: "Se connecter via le web — OpenRouter, comme Claude Code",
   useLocal: "Modèle local — gratuit, sur ta machine (Ollama, LM Studio…)",
   tokenPrompt: "Colle ton token API (on détecte le fournisseur automatiquement) :",
   tokenUnknown: "Token non reconnu. Attendu : sk-ant-…, sk-…, sk-or-v1-…, nvapi-…, gsk_…",
-  webOpening: "Ouverture du navigateur… autorise Open42 sur OpenRouter, puis reviens ici.",
-  webUrlFallback: (url) => `Si rien ne s'ouvre, va sur : ${url}`,
-  webError: (message) => `Connexion web échouée : ${message}`,
-  webRetryHint: "Entrée pour revenir au menu.",
   localConnecting: "Connexion à ton modèle local…",
   selectHint: "↑/↓ puis Entrée · Tab pour la langue",
   localReady:
     "Mode local : lance d'abord un modèle (ex : ollama run llama3.1), puis pose ta question.",
   modelDemoDisabled: "La commande /model est indisponible en mode démo.",
-  modelCurrent: (provider, model) => `IA actuelle : ${provider} · modèle ${model}`,
-  modelUsage:
-    "Usage : /model <anthropic|openai|ollama|custom> [modèle] · ou /model <n> pour un modèle local détecté.",
-  modelDetecting: "Recherche des modèles locaux en cours…",
-  localModelsHeader: "Modèles locaux détectés :",
-  noLocalModels: "Aucun modèle local détecté (aucun serveur local ne répond).",
   modelChanged: (provider, model) => `IA changée : ${provider} · modèle ${model}.`,
   modelNeedsKey: (provider) =>
     `Aucune clé API pour ${provider}. Définis ${provider === "anthropic" ? "ANTHROPIC_API_KEY" : "OPENAI_API_KEY"} dans ton environnement, puis relance /model.`,
@@ -198,7 +177,7 @@ const EN: Strings = {
     "/mentors         list available mentors",
     "/mentor <id>     pin a mentor (e.g. /mentor ai-coach)",
     "/auto            resume automatic routing",
-    "/model           switch AI or model (e.g. /model ollama qwen2.5-coder)",
+    "/model           reopen the connection screen · or /model <ai> [model] for a quick switch",
     "/lang <auto|fr|en>  change the language",
     "/remember        save a summary of this session (local memory)",
     "/memory          show what is remembered",
@@ -232,24 +211,13 @@ const EN: Strings = {
   langPickHint: (label) => `Language: ‹ ${label} ›  (Tab to change)`,
   connectTitle: "No AI connected — connect one:",
   connectPasteToken: "Paste an API key — Claude, OpenAI, OpenRouter, NVIDIA, Groq…",
-  connectWeb: "Connect via the web — OpenRouter, like Claude Code",
   useLocal: "Local model — free, on your machine (Ollama, LM Studio…)",
   tokenPrompt: "Paste your API key (we detect the provider automatically):",
   tokenUnknown: "Unrecognized token. Expected: sk-ant-…, sk-…, sk-or-v1-…, nvapi-…, gsk_…",
-  webOpening: "Opening the browser… authorize Open42 on OpenRouter, then come back here.",
-  webUrlFallback: (url) => `If nothing opens, go to: ${url}`,
-  webError: (message) => `Web sign-in failed: ${message}`,
-  webRetryHint: "Press Enter to go back.",
   localConnecting: "Connecting to your local model…",
   selectHint: "↑/↓ then Enter · Tab for language",
   localReady: "Local mode: start a model first (e.g. ollama run llama3.1), then ask your question.",
   modelDemoDisabled: "The /model command is unavailable in demo mode.",
-  modelCurrent: (provider, model) => `Current AI: ${provider} · model ${model}`,
-  modelUsage:
-    "Usage: /model <anthropic|openai|ollama|custom> [model] · or /model <n> to pick a detected local model.",
-  modelDetecting: "Scanning for local models…",
-  localModelsHeader: "Local models detected:",
-  noLocalModels: "No local model detected (no local server responded).",
   modelChanged: (provider, model) => `Switched AI: ${provider} · model ${model}.`,
   modelNeedsKey: (provider) =>
     `No API key for ${provider}. Set ${provider === "anthropic" ? "ANTHROPIC_API_KEY" : "OPENAI_API_KEY"} in your environment, then run /model again.`,

@@ -36,7 +36,6 @@ import {
   type CliConfig,
 } from "../config.js";
 import { planModelSwitch } from "../modelCommand.js";
-import { detectLocalModels, type DetectedModel } from "../../providers/localModels.js";
 
 interface Entry {
   id: number;
@@ -56,13 +55,6 @@ function initialEntries(t: Strings, localHint: boolean): Entry[] {
   return entries;
 }
 
-/** Build the config to switch to when the user picks a detected local model. */
-function configForLocalModel(base: CliConfig, model: DetectedModel): CliConfig {
-  if (model.runtime === "ollama") {
-    return { ...base, provider: "ollama", model: model.model, baseUrl: undefined, apiKey: undefined };
-  }
-  return { ...base, provider: "custom", model: model.model, baseUrl: model.chatUrl, apiKey: undefined };
-}
 
 export function Chat({
   open42,
@@ -73,6 +65,7 @@ export function Chat({
   onLanguageChange,
   onConfigChange,
   onLogout,
+  onReconnect,
 }: {
   open42: Open42;
   demo?: boolean;
@@ -82,6 +75,7 @@ export function Chat({
   onLanguageChange?: (choice: LangChoice) => void;
   onConfigChange?: (config: CliConfig) => void;
   onLogout?: () => void;
+  onReconnect?: () => void;
 }) {
   const { exit } = useApp();
   const [choice, setChoice] = useState<LangChoice>(initialLang);
@@ -98,7 +92,6 @@ export function Chat({
   const [confirmExit, setConfirmExit] = useState(false);
   const [project, setProject] = useState<string | undefined>(() => getProjectContext());
   const [rememberNudged, setRememberNudged] = useState(false);
-  const [localModels, setLocalModels] = useState<DetectedModel[]>([]);
   const idRef = useRef(2);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -202,39 +195,25 @@ export function Chat({
     }
   };
 
-  const handleModelCommand = async (arg?: string) => {
+  const handleModelCommand = (arg?: string) => {
+    const tokens = (arg ?? "").trim().split(/\s+/).filter(Boolean);
+
+    // No argument: reopen the same connection screen as first run
+    // (paste a token / connect via the web / local model).
+    if (tokens.length === 0) {
+      if (demo || !onReconnect) {
+        push({ role: "system", content: t.modelDemoDisabled });
+        return;
+      }
+      onReconnect();
+      return;
+    }
+
+    // Quick switch for power users: /model <ai> [model] or /model <model>.
     if (demo || !config || !onConfigChange) {
       push({ role: "system", content: t.modelDemoDisabled });
       return;
     }
-    const tokens = (arg ?? "").trim().split(/\s+/).filter(Boolean);
-
-    // Pick a model from a previously listed local runtime by its number.
-    if (tokens.length === 1) {
-      const index = Number(tokens[0]);
-      if (Number.isInteger(index) && index >= 1 && index <= localModels.length) {
-        applyConfig(configForLocalModel(config, localModels[index - 1]!));
-        return;
-      }
-    }
-
-    // No argument: show the current AI, scan for local runtimes, print usage.
-    if (tokens.length === 0) {
-      push({ role: "system", content: t.modelCurrent(config.provider, config.model ?? "default") });
-      push({ role: "system", content: t.modelDetecting });
-      const detected = await detectLocalModels();
-      setLocalModels(detected);
-      if (detected.length === 0) {
-        push({ role: "system", content: t.noLocalModels });
-      } else {
-        const list = detected.map((m, i) => `  ${i + 1}. ${m.label} — ${m.model}`).join("\n");
-        push({ role: "system", content: `${t.localModelsHeader}\n${list}` });
-      }
-      push({ role: "system", content: t.modelUsage });
-      return;
-    }
-
-    // Switch provider and/or model.
     const plan = planModelSwitch(config, arg, envKeyFor);
     if (plan.kind === "error") {
       push({
@@ -286,7 +265,7 @@ export function Chat({
         push({ role: "system", content: t.autoOn });
         return;
       case "model":
-        await handleModelCommand(arg);
+        handleModelCommand(arg);
         return;
       case "logout":
       case "disconnect":

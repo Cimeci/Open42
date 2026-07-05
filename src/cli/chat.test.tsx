@@ -34,4 +34,21 @@ describe("TUI rendering (no TTY required)", () => {
     const en = render(<Chat open42={open42} initialLang="en" />);
     expect(en.lastFrame()).toContain("Ask your question…");
   });
+
+  it("opens and filters the slash-command palette while typing", async () => {
+    const delay = () => new Promise((r) => setTimeout(r, 20));
+    const open42 = new Open42({ provider: fakeProvider });
+    const { stdin, lastFrame } = render(<Chat open42={open42} demo initialLang="en" />);
+
+    stdin.write("/");
+    await delay();
+    expect(lastFrame()).toContain("/help");
+    expect(lastFrame()).toContain("/model");
+
+    stdin.write("lo"); // now "/lo"
+    await delay();
+    expect(lastFrame()).toContain("/logout");
+    // Non-matching commands drop out of the palette (/lang isn't shown anywhere else).
+    expect(lastFrame()).not.toContain("/lang");
+  });
 });

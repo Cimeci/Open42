@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Box, Text, Static, useApp, useInput } from "ink";
 import TextInput from "ink-text-input";
 import Spinner from "ink-spinner";
@@ -36,6 +36,7 @@ import {
   type CliConfig,
 } from "../config.js";
 import { planModelSwitch } from "../modelCommand.js";
+import { slashCommands, filterCommands, type SlashCommand } from "../commands.js";
 
 interface Entry {
   id: number;
@@ -92,11 +93,22 @@ export function Chat({
   const [confirmExit, setConfirmExit] = useState(false);
   const [project, setProject] = useState<string | undefined>(() => getProjectContext());
   const [rememberNudged, setRememberNudged] = useState(false);
+  const [paletteIndex, setPaletteIndex] = useState(0);
   const idRef = useRef(2);
   const abortRef = useRef<AbortController | null>(null);
 
   const busy = streaming !== null;
   const exchanges = transcript.filter((turn) => turn.role === "student").length;
+
+  // Slash-command palette: open while typing "/foo" (before any space).
+  const commands = useMemo(() => slashCommands(uiLang), [uiLang]);
+  const paletteQuery = input.startsWith("/") && !input.includes(" ") ? input.slice(1) : null;
+  const paletteMatches = paletteQuery !== null ? filterCommands(commands, paletteQuery) : [];
+  const showPalette = !busy && paletteQuery !== null && paletteMatches.length > 0;
+  const activeIndex = paletteMatches.length ? Math.min(paletteIndex, paletteMatches.length - 1) : 0;
+
+  // Reset the highlight to the top whenever the query changes.
+  useEffect(() => setPaletteIndex(0), [paletteQuery]);
 
   const push = (entry: Omit<Entry, "id">) => {
     idRef.current += 1;
@@ -106,6 +118,25 @@ export function Chat({
 
   // Ctrl+C / Esc: cancel an in-flight reply; double Ctrl+C when idle to exit.
   useInput((char, key) => {
+    // Command palette: arrows move the highlight, Tab completes, Esc closes.
+    if (showPalette) {
+      if (key.upArrow) {
+        setPaletteIndex((i) => (i - 1 + paletteMatches.length) % paletteMatches.length);
+        return;
+      }
+      if (key.downArrow) {
+        setPaletteIndex((i) => (i + 1) % paletteMatches.length);
+        return;
+      }
+      if (key.tab) {
+        setInput(`/${paletteMatches[activeIndex]!.name} `);
+        return;
+      }
+      if (key.escape) {
+        setInput("");
+        return;
+      }
+    }
     const ctrlC = key.ctrl && char === "c";
     if (!key.escape && !ctrlC) return;
     if (abortRef.current) {
@@ -339,6 +370,21 @@ export function Chat({
   };
 
   const onSubmit = async (raw: string) => {
+    // When the palette is open, Enter picks the highlighted command: it runs it
+    // directly, or completes it first when the command still needs an argument.
+    if (showPalette) {
+      const picked = paletteMatches[activeIndex];
+      if (picked) {
+        if (picked.requiresArg) {
+          setInput(`/${picked.name} `);
+          return;
+        }
+        setInput("");
+        await handleCommand(`/${picked.name}`);
+        return;
+      }
+    }
+
     const text = raw.trim();
     setInput("");
     if (!text) return;
@@ -399,6 +445,8 @@ export function Chat({
           {contextLine}
         </Text>
 
+        {showPalette && <CommandPalette matches={paletteMatches} selected={activeIndex} />}
+
         {busy ? (
           <Box borderStyle="round" borderColor="gray" paddingX={1}>
             <Text color="cyan">
@@ -426,6 +474,34 @@ export function Chat({
           confirmExit={confirmExit}
         />
       </Box>
+    </Box>
+  );
+}
+
+function CommandPalette({ matches, selected }: { matches: SlashCommand[]; selected: number }) {
+  const MAX_VISIBLE = 8;
+  // Slide the window so the highlighted row is always visible.
+  const offset = selected < MAX_VISIBLE ? 0 : selected - MAX_VISIBLE + 1;
+  const visible = matches.slice(offset, offset + MAX_VISIBLE);
+  return (
+    <Box flexDirection="column" borderStyle="round" borderColor="gray" paddingX={1}>
+      {visible.map((command, i) => {
+        const isSelected = offset + i === selected;
+        return (
+          <Text key={command.name}>
+            <Text color={isSelected ? "cyanBright" : undefined} bold={isSelected}>
+              {isSelected ? "❯ " : "  "}/{command.name}
+            </Text>
+            {command.hint ? <Text color="gray"> {command.hint}</Text> : null}
+            <Text color="gray">{`  — ${command.summary}`}</Text>
+          </Text>
+        );
+      })}
+      {matches.length > MAX_VISIBLE && (
+        <Text color="gray" dimColor>
+          {`  … ${matches.length - MAX_VISIBLE} more`}
+        </Text>
+      )}
     </Box>
   );
 }

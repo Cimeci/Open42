@@ -119,6 +119,8 @@ export interface ComposeMentorOptions {
   /** Optional learner memory block injected for cross-session continuity. */
   readonly memory?: string;
   readonly style?: PromptStyle;
+  /** One-off instructions for this turn only (e.g. the /verify mode). */
+  readonly extraInstructions?: string;
 }
 
 /**
@@ -144,7 +146,10 @@ export function composeMentorPrompt(
     language: options.language,
     roleHeader,
     customPrompt: mentor.prompt,
-    extraInstructions: [memoryBlock, mentor.extraInstructions].filter(Boolean).join(SECTION_RULE) || undefined,
+    extraInstructions:
+      [memoryBlock, mentor.extraInstructions, options.extraInstructions]
+        .filter(Boolean)
+        .join(SECTION_RULE) || undefined,
     style: options.style ?? "full",
   });
 }

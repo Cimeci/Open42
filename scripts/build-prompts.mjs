@@ -25,6 +25,7 @@ const core = {
   METHOD: read("method.md"),
   CALIBRATION: read("calibration.md"),
   SUMMARIZER: read("summary.md"),
+  VERIFY: read("verify.md"),
 };
 
 const domains = {

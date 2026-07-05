@@ -3,7 +3,7 @@
 // multi-agent layer on top of the single-mentor Maieutic primitive.
 
 import { composeMentorPrompt } from "./prompts.js";
-import { SUMMARIZER } from "./generated/prompts.js";
+import { SUMMARIZER, VERIFY } from "./generated/prompts.js";
 import { assertRespondable, toProviderMessages } from "./messages.js";
 import { MentorRegistry, DEFAULT_MENTOR_ID } from "./mentors.js";
 import { HeuristicRouter } from "./router.js";
@@ -54,6 +54,9 @@ export interface RespondOptions {
   readonly mentor?: string;
   /** Abort an in-flight streamed reply. */
   readonly signal?: AbortSignal;
+  /** Verification mode for this turn only: reason step by step, give a validation
+   * command, cite sources. Layered on top of the routed mentor, not cached. */
+  readonly verify?: boolean;
 }
 
 export class Open42 {
@@ -144,7 +147,7 @@ export class Open42 {
 
     const mentor = await this.selectMentor(transcript, options);
     const result = await this.provider.complete({
-      system: this.composePrompt(mentor),
+      system: this.composePrompt(mentor, options.verify ? VERIFY : undefined),
       messages: this.providerMessages(transcript),
     });
 
@@ -166,7 +169,7 @@ export class Open42 {
     handlers.onMentor?.(mentor.id);
 
     const request = {
-      system: this.composePrompt(mentor),
+      system: this.composePrompt(mentor, options.verify ? VERIFY : undefined),
       messages: this.providerMessages(transcript),
     };
 
@@ -229,15 +232,20 @@ export class Open42 {
     return toProviderMessages(slice);
   }
 
-  private composePrompt(mentor: MentorDefinition): string {
-    const cached = this.promptCache.get(mentor.id);
-    if (cached) return cached;
-    const prompt = composeMentorPrompt(mentor, {
+  private composePrompt(mentor: MentorDefinition, extra?: string): string {
+    const base = {
       rigor: this.rigor,
       language: this.language,
       memory: this.memory,
       style: this.promptStyle,
-    });
+    };
+    // Per-turn instructions (e.g. /verify) bypass the cache entirely, so the mode
+    // never leaks into later turns and a cached prompt is never a verify prompt.
+    if (extra) return composeMentorPrompt(mentor, { ...base, extraInstructions: extra });
+
+    const cached = this.promptCache.get(mentor.id);
+    if (cached) return cached;
+    const prompt = composeMentorPrompt(mentor, base);
     this.promptCache.set(mentor.id, prompt);
     return prompt;
   }

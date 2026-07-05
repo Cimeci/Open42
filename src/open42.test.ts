@@ -299,6 +299,35 @@ describe("Open42.setPromptStyle", () => {
   });
 });
 
+describe("Open42 verify mode", () => {
+  const VERIFY_MARKER = "Verification mode";
+
+  it("injects the verification instructions when verify is set", async () => {
+    const provider = new CapturingProvider();
+    const open42 = new Open42({ provider });
+    await open42.respond([{ role: "student", content: "is malloc guaranteed to zero memory?" }], {
+      verify: true,
+    });
+    expect(provider.lastRequest?.system).toContain(VERIFY_MARKER);
+  });
+
+  it("leaves a normal turn untouched", async () => {
+    const provider = new CapturingProvider();
+    const open42 = new Open42({ provider });
+    await open42.respond([{ role: "student", content: "hello" }]);
+    expect(provider.lastRequest?.system).not.toContain(VERIFY_MARKER);
+  });
+
+  it("does not leak the verify prompt into later turns (cache not polluted)", async () => {
+    const provider = new CapturingProvider();
+    const open42 = new Open42({ provider });
+    await open42.respond([{ role: "student", content: "verify this claim" }], { verify: true });
+    expect(provider.lastRequest?.system).toContain(VERIFY_MARKER);
+    await open42.respond([{ role: "student", content: "a normal follow-up question" }]);
+    expect(provider.lastRequest?.system).not.toContain(VERIFY_MARKER);
+  });
+});
+
 describe("sticky routing", () => {
   it("stays with the current mentor when a follow-up has no clear signal", async () => {
     const provider = new CapturingProvider();

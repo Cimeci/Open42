@@ -1,5 +1,19 @@
 import { describe, it, expect } from "vitest";
-import { composeSystemPrompt, ALL_DOMAINS } from "./prompts.js";
+import { composeSystemPrompt, composeMentorPrompt, ALL_DOMAINS } from "./prompts.js";
+import { BUILTIN_MENTORS } from "./mentors.js";
+
+describe("composeMentorPrompt per-turn instructions", () => {
+  const tutor = BUILTIN_MENTORS.find((m) => m.id === "tutor")!;
+
+  it("appends per-turn extraInstructions (used by /verify)", () => {
+    const prompt = composeMentorPrompt(tutor, { extraInstructions: "ZZZ-PER-TURN-MARKER" });
+    expect(prompt).toContain("ZZZ-PER-TURN-MARKER");
+  });
+
+  it("omits them when none are given", () => {
+    expect(composeMentorPrompt(tutor, {})).not.toContain("ZZZ-PER-TURN-MARKER");
+  });
+});
 
 describe("composeSystemPrompt", () => {
   it("always includes the persona, guardrails, method, and calibration", () => {

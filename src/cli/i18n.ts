@@ -43,6 +43,8 @@ export interface Strings {
   localReady: string;
   modelDemoDisabled: string;
   modelReconnectConfirm: string;
+  verifyLastRequest: string;
+  verifyNothing: string;
   modelChanged: (provider: string, model: string) => string;
   modelNeedsKey: (provider: string) => string;
   modelNeedsBaseUrl: string;
@@ -88,6 +90,7 @@ const FR: Strings = {
     "/mentor <id>     fixe un mentor (ex: /mentor ai-coach)",
     "/auto            reprend le routage automatique",
     "/model           rouvre l'écran de connexion · ou /model <ia> [modèle] pour un changement rapide",
+    "/verify          vérifie la réponse de l'IA (ou /verify <question>)",
     "/lang <auto|fr|en>  change la langue",
     "/remember        sauvegarde un résumé de la session (mémoire locale)",
     "/memory          affiche ce qui est mémorisé",
@@ -131,6 +134,9 @@ const FR: Strings = {
   modelDemoDisabled: "La commande /model est indisponible en mode démo.",
   modelReconnectConfirm:
     "Changer d'IA réinitialise la conversation en cours. Retape /model pour confirmer.",
+  verifyLastRequest:
+    "Vérifie ta réponse précédente : explicite ton raisonnement étape par étape, propose une commande de validation que je peux lancer, et cite tes sources.",
+  verifyNothing: "Rien à vérifier pour l'instant. Pose une question, ou utilise /verify <question>.",
   modelChanged: (provider, model) => `IA changée : ${provider} · modèle ${model}.`,
   modelNeedsKey: (provider) =>
     `Aucune clé API pour ${provider}. Définis ${provider === "anthropic" ? "ANTHROPIC_API_KEY" : "OPENAI_API_KEY"} dans ton environnement, puis relance /model.`,
@@ -181,6 +187,7 @@ const EN: Strings = {
     "/mentor <id>     pin a mentor (e.g. /mentor ai-coach)",
     "/auto            resume automatic routing",
     "/model           reopen the connection screen · or /model <ai> [model] for a quick switch",
+    "/verify          verify the AI's answer (or /verify <question>)",
     "/lang <auto|fr|en>  change the language",
     "/remember        save a summary of this session (local memory)",
     "/memory          show what is remembered",
@@ -223,6 +230,9 @@ const EN: Strings = {
   modelDemoDisabled: "The /model command is unavailable in demo mode.",
   modelReconnectConfirm:
     "Switching AI resets the current conversation. Type /model again to confirm.",
+  verifyLastRequest:
+    "Verify your previous answer: reason step by step, give me a validation command I can run, and cite your sources.",
+  verifyNothing: "Nothing to verify yet. Ask a question, or use /verify <question>.",
   modelChanged: (provider, model) => `Switched AI: ${provider} · model ${model}.`,
   modelNeedsKey: (provider) =>
     `No API key for ${provider}. Set ${provider === "anthropic" ? "ANTHROPIC_API_KEY" : "OPENAI_API_KEY"} in your environment, then run /model again.`,

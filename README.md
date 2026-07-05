@@ -4,6 +4,7 @@
 > students learn to code, reason, architect, review - **and use AI well without
 > becoming dependent on it.**
 
+[![npm version](https://img.shields.io/npm/v/@open42/cli.svg)](https://www.npmjs.com/package/@open42/cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 ![Open42 running in the terminal](docs/open42_cli_screen.png)
@@ -13,23 +14,37 @@
 Requires Node.js 20+.
 
 ```bash
-git clone https://github.com/Cimeci/Open42.git
-cd Open42
-npm install
-npm start                # on first run, it asks which provider you want
+npm install -g @open42/cli
+open42                   # on first run, it asks which provider you want
+```
+
+Or run it without installing:
+
+```bash
+npx @open42/cli
 ```
 
 Pick your model:
 
 ```bash
 # free & local, no API key (start a model first: ollama run llama3.1):
-npm start -- --provider ollama
+open42 --provider ollama
 
 # or with a hosted key:
-ANTHROPIC_API_KEY=sk-ant-... npm start
+ANTHROPIC_API_KEY=sk-ant-... open42
 ```
 
-(Once published to npm, running it will be as simple as `npx open42`.)
+<details>
+<summary>Prefer to run from source?</summary>
+
+```bash
+git clone https://github.com/Cimeci/Open42.git
+cd Open42
+npm install
+npm start                # builds, then launches the mentor
+```
+
+</details>
 
 Open42 turns any capable LLM into a team of patient mentors instead of an answer
 machine. It is built in the spirit of [42](https://42.fr)'s pedagogy -
@@ -108,9 +123,9 @@ Open42 ships a terminal app (built with [Ink](https://github.com/vadimdemedes/in
 like Claude Code and Codex). Bring your own model:
 
 ```bash
-npm install
-npm start          # builds, then launches the mentor
-# or, once published:  npx open42
+npm install -g @open42/cli
+open42             # launches the mentor
+# or, without installing:  npx @open42/cli
 ```
 
 Replies **stream** in token by token, like Claude Code.
@@ -232,12 +247,11 @@ as a system prompt - that *is* the harness.
 ## Quickstart (TypeScript)
 
 ```bash
-npm install
-npm run build
+npm install @open42/cli
 ```
 
 ```ts
-import { Open42, AnthropicProvider } from "open42";
+import { Open42, AnthropicProvider } from "@open42/cli";
 
 const open42 = new Open42({
   provider: new AnthropicProvider({ apiKey: process.env.ANTHROPIC_API_KEY! }),

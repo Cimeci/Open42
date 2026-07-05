@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Box, Text, Static, useApp, useInput } from "ink";
 import TextInput from "ink-text-input";
 import Spinner from "ink-spinner";
@@ -36,7 +36,7 @@ import {
   type CliConfig,
 } from "../config.js";
 import { planModelSwitch } from "../modelCommand.js";
-import { detectLocalModels, type DetectedModel } from "../../providers/localModels.js";
+import { slashCommands, filterCommands, type SlashCommand } from "../commands.js";
 
 interface Entry {
   id: number;
@@ -56,13 +56,6 @@ function initialEntries(t: Strings, localHint: boolean): Entry[] {
   return entries;
 }
 
-/** Build the config to switch to when the user picks a detected local model. */
-function configForLocalModel(base: CliConfig, model: DetectedModel): CliConfig {
-  if (model.runtime === "ollama") {
-    return { ...base, provider: "ollama", model: model.model, baseUrl: undefined, apiKey: undefined };
-  }
-  return { ...base, provider: "custom", model: model.model, baseUrl: model.chatUrl, apiKey: undefined };
-}
 
 export function Chat({
   open42,
@@ -73,6 +66,7 @@ export function Chat({
   onLanguageChange,
   onConfigChange,
   onLogout,
+  onReconnect,
 }: {
   open42: Open42;
   demo?: boolean;
@@ -82,6 +76,7 @@ export function Chat({
   onLanguageChange?: (choice: LangChoice) => void;
   onConfigChange?: (config: CliConfig) => void;
   onLogout?: () => void;
+  onReconnect?: () => void;
 }) {
   const { exit } = useApp();
   const [choice, setChoice] = useState<LangChoice>(initialLang);
@@ -98,12 +93,26 @@ export function Chat({
   const [confirmExit, setConfirmExit] = useState(false);
   const [project, setProject] = useState<string | undefined>(() => getProjectContext());
   const [rememberNudged, setRememberNudged] = useState(false);
-  const [localModels, setLocalModels] = useState<DetectedModel[]>([]);
+  const [paletteIndex, setPaletteIndex] = useState(0);
+  // Bumped on a programmatic completion to remount TextInput and re-sync its cursor.
+  const [completionTick, setCompletionTick] = useState(0);
+  // `/model` (no arg) resets the session, so require a second /model to confirm.
+  const [confirmReconnect, setConfirmReconnect] = useState(false);
   const idRef = useRef(2);
   const abortRef = useRef<AbortController | null>(null);
 
   const busy = streaming !== null;
   const exchanges = transcript.filter((turn) => turn.role === "student").length;
+
+  // Slash-command palette: open while typing "/foo" (before any space).
+  const commands = useMemo(() => slashCommands(uiLang), [uiLang]);
+  const paletteQuery = input.startsWith("/") && !input.includes(" ") ? input.slice(1) : null;
+  const paletteMatches = paletteQuery !== null ? filterCommands(commands, paletteQuery) : [];
+  const showPalette = !busy && paletteQuery !== null && paletteMatches.length > 0;
+  const activeIndex = paletteMatches.length ? Math.min(paletteIndex, paletteMatches.length - 1) : 0;
+
+  // Reset the highlight to the top whenever the query changes.
+  useEffect(() => setPaletteIndex(0), [paletteQuery]);
 
   const push = (entry: Omit<Entry, "id">) => {
     idRef.current += 1;
@@ -113,6 +122,26 @@ export function Chat({
 
   // Ctrl+C / Esc: cancel an in-flight reply; double Ctrl+C when idle to exit.
   useInput((char, key) => {
+    // Command palette: arrows move the highlight, Tab completes, Esc closes.
+    if (showPalette) {
+      if (key.upArrow) {
+        setPaletteIndex((i) => (i - 1 + paletteMatches.length) % paletteMatches.length);
+        return;
+      }
+      if (key.downArrow) {
+        setPaletteIndex((i) => (i + 1) % paletteMatches.length);
+        return;
+      }
+      if (key.tab) {
+        setInput(`/${paletteMatches[activeIndex]!.name} `);
+        setCompletionTick((tick) => tick + 1);
+        return;
+      }
+      if (key.escape) {
+        setInput("");
+        return;
+      }
+    }
     const ctrlC = key.ctrl && char === "c";
     if (!key.escape && !ctrlC) return;
     if (abortRef.current) {
@@ -130,6 +159,12 @@ export function Chat({
     const timer = setTimeout(() => setConfirmExit(false), 2500);
     return () => clearTimeout(timer);
   }, [confirmExit]);
+
+  useEffect(() => {
+    if (!confirmReconnect) return;
+    const timer = setTimeout(() => setConfirmReconnect(false), 3000);
+    return () => clearTimeout(timer);
+  }, [confirmReconnect]);
 
   useEffect(() => {
     if (!demo) recordSession();
@@ -202,39 +237,31 @@ export function Chat({
     }
   };
 
-  const handleModelCommand = async (arg?: string) => {
+  const handleModelCommand = (arg?: string) => {
+    const tokens = (arg ?? "").trim().split(/\s+/).filter(Boolean);
+
+    // No argument: reopen the connection screen (paste a token / local model).
+    // This resets the conversation, so ask for a second /model to confirm.
+    if (tokens.length === 0) {
+      if (demo || !onReconnect) {
+        push({ role: "system", content: t.modelDemoDisabled });
+        return;
+      }
+      if (!confirmReconnect) {
+        setConfirmReconnect(true);
+        push({ role: "system", content: t.modelReconnectConfirm });
+        return;
+      }
+      setConfirmReconnect(false);
+      onReconnect();
+      return;
+    }
+
+    // Quick switch for power users: /model <ai> [model] or /model <model>.
     if (demo || !config || !onConfigChange) {
       push({ role: "system", content: t.modelDemoDisabled });
       return;
     }
-    const tokens = (arg ?? "").trim().split(/\s+/).filter(Boolean);
-
-    // Pick a model from a previously listed local runtime by its number.
-    if (tokens.length === 1) {
-      const index = Number(tokens[0]);
-      if (Number.isInteger(index) && index >= 1 && index <= localModels.length) {
-        applyConfig(configForLocalModel(config, localModels[index - 1]!));
-        return;
-      }
-    }
-
-    // No argument: show the current AI, scan for local runtimes, print usage.
-    if (tokens.length === 0) {
-      push({ role: "system", content: t.modelCurrent(config.provider, config.model ?? "default") });
-      push({ role: "system", content: t.modelDetecting });
-      const detected = await detectLocalModels();
-      setLocalModels(detected);
-      if (detected.length === 0) {
-        push({ role: "system", content: t.noLocalModels });
-      } else {
-        const list = detected.map((m, i) => `  ${i + 1}. ${m.label} — ${m.model}`).join("\n");
-        push({ role: "system", content: `${t.localModelsHeader}\n${list}` });
-      }
-      push({ role: "system", content: t.modelUsage });
-      return;
-    }
-
-    // Switch provider and/or model.
     const plan = planModelSwitch(config, arg, envKeyFor);
     if (plan.kind === "error") {
       push({
@@ -248,7 +275,9 @@ export function Chat({
   };
 
   const handleCommand = async (text: string) => {
-    const [cmd, ...rest] = text.slice(1).trim().split(/\s+/);
+    const [rawCmd, ...rest] = text.slice(1).trim().split(/\s+/);
+    // Match commands case-insensitively so "/Model" or "/HELP" still work.
+    const cmd = rawCmd?.toLowerCase();
     const arg = rest.join(" ").trim() || undefined;
     switch (cmd) {
       case "remember":
@@ -286,7 +315,7 @@ export function Chat({
         push({ role: "system", content: t.autoOn });
         return;
       case "model":
-        await handleModelCommand(arg);
+        handleModelCommand(arg);
         return;
       case "logout":
       case "disconnect":
@@ -360,6 +389,22 @@ export function Chat({
   };
 
   const onSubmit = async (raw: string) => {
+    // When the palette is open, Enter picks the highlighted command: it runs it
+    // directly, or completes it first when the command still needs an argument.
+    if (showPalette) {
+      const picked = paletteMatches[activeIndex];
+      if (picked) {
+        if (picked.requiresArg) {
+          setInput(`/${picked.name} `);
+          setCompletionTick((tick) => tick + 1);
+          return;
+        }
+        setInput("");
+        await handleCommand(`/${picked.name}`);
+        return;
+      }
+    }
+
     const text = raw.trim();
     setInput("");
     if (!text) return;
@@ -420,6 +465,8 @@ export function Chat({
           {contextLine}
         </Text>
 
+        {showPalette && <CommandPalette matches={paletteMatches} selected={activeIndex} />}
+
         {busy ? (
           <Box borderStyle="round" borderColor="gray" paddingX={1}>
             <Text color="cyan">
@@ -431,6 +478,7 @@ export function Chat({
           <Box borderStyle="round" borderColor={BRAND_COLOR} paddingX={1}>
             <Text color="cyanBright">{pinned ? `${pinned} › ` : "› "}</Text>
             <TextInput
+              key={completionTick}
               value={input}
               onChange={setInput}
               onSubmit={onSubmit}
@@ -447,6 +495,34 @@ export function Chat({
           confirmExit={confirmExit}
         />
       </Box>
+    </Box>
+  );
+}
+
+function CommandPalette({ matches, selected }: { matches: SlashCommand[]; selected: number }) {
+  const MAX_VISIBLE = 8;
+  // Slide the window so the highlighted row is always visible.
+  const offset = selected < MAX_VISIBLE ? 0 : selected - MAX_VISIBLE + 1;
+  const visible = matches.slice(offset, offset + MAX_VISIBLE);
+  return (
+    <Box flexDirection="column" borderStyle="round" borderColor="gray" paddingX={1}>
+      {visible.map((command, i) => {
+        const isSelected = offset + i === selected;
+        return (
+          <Text key={command.name}>
+            <Text color={isSelected ? "cyanBright" : undefined} bold={isSelected}>
+              {isSelected ? "❯ " : "  "}/{command.name}
+            </Text>
+            {command.hint ? <Text color="gray"> {command.hint}</Text> : null}
+            <Text color="gray">{`  — ${command.summary}`}</Text>
+          </Text>
+        );
+      })}
+      {matches.length > MAX_VISIBLE && (
+        <Text color="gray" dimColor>
+          {`  … ${matches.length - MAX_VISIBLE} more`}
+        </Text>
+      )}
     </Box>
   );
 }

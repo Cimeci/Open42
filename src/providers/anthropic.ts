@@ -2,7 +2,7 @@
 
 import type { CompletionRequest, CompletionResult, OnTextDelta, Provider } from "../types.js";
 import { readSSE } from "./sse.js";
-import { safeErrorDetail } from "./util.js";
+import { networkErrorDetail, safeErrorDetail, REQUEST_TIMEOUT_MS } from "./util.js";
 
 export interface AnthropicProviderOptions {
   readonly apiKey: string;
@@ -35,20 +35,29 @@ export class AnthropicProvider implements Provider {
   }
 
   async complete(request: CompletionRequest): Promise<CompletionResult> {
-    const response = await fetch(this.opts.baseUrl, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": this.opts.apiKey,
-        "anthropic-version": this.opts.anthropicVersion,
-      },
-      body: JSON.stringify({
-        model: this.opts.model,
-        max_tokens: this.opts.maxTokens,
-        system: request.system,
-        messages: request.messages.map((m) => ({ role: m.role, content: m.content })),
-      }),
-    });
+    let response: Response;
+    try {
+      response = await fetch(this.opts.baseUrl, {
+        method: "POST",
+        // No streaming here, so bound the request with a default timeout.
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        headers: {
+          "content-type": "application/json",
+          "x-api-key": this.opts.apiKey,
+          "anthropic-version": this.opts.anthropicVersion,
+        },
+        body: JSON.stringify({
+          model: this.opts.model,
+          max_tokens: this.opts.maxTokens,
+          system: request.system,
+          messages: request.messages.map((m) => ({ role: m.role, content: m.content })),
+        }),
+      });
+    } catch (err) {
+      throw new Error(
+        `AnthropicProvider: could not reach ${this.opts.baseUrl} — is the server running? (${networkErrorDetail(err)})`,
+      );
+    }
 
     if (!response.ok) {
       const detail = await safeErrorDetail(response);

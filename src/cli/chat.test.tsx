@@ -52,6 +52,19 @@ describe("TUI rendering (no TTY required)", () => {
     expect(lastFrame()).not.toContain("/lang");
   });
 
+  it("/norm is disabled in demo mode", async () => {
+    const delay = () => new Promise((r) => setTimeout(r, 25));
+    const open42 = new Open42({ provider: fakeProvider });
+    const { stdin, lastFrame } = render(<Chat open42={open42} demo initialLang="en" />);
+
+    stdin.write("/norm");
+    await delay();
+    stdin.write("\r");
+    await delay();
+
+    expect(lastFrame()).toContain("unavailable in demo");
+  });
+
   it("/verify with no prior answer reports there is nothing to verify", async () => {
     const delay = () => new Promise((r) => setTimeout(r, 25));
     const open42 = new Open42({ provider: fakeProvider });

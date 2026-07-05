@@ -49,10 +49,13 @@ export function slashCommands(lang: UiLang): SlashCommand[] {
 
 /**
  * Filter commands by a query (the text after `/`), matching the command name by
- * prefix and keeping the catalogue order. An empty query returns everything.
+ * prefix. An exact match is floated to the top so typing a full command name
+ * (e.g. `mentor`) selects it, not a longer command sharing its prefix
+ * (`mentors`). An empty query returns everything.
  */
 export function filterCommands(commands: SlashCommand[], query: string): SlashCommand[] {
   const q = query.trim().toLowerCase();
   if (!q) return commands;
-  return commands.filter((c) => c.name.startsWith(q));
+  const matches = commands.filter((c) => c.name.startsWith(q));
+  return [...matches.filter((c) => c.name === q), ...matches.filter((c) => c.name !== q)];
 }

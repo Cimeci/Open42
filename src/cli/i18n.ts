@@ -42,6 +42,7 @@ export interface Strings {
   selectHint: string;
   localReady: string;
   modelDemoDisabled: string;
+  modelReconnectConfirm: string;
   modelChanged: (provider: string, model: string) => string;
   modelNeedsKey: (provider: string) => string;
   modelNeedsBaseUrl: string;
@@ -128,6 +129,8 @@ const FR: Strings = {
   localReady:
     "Mode local : lance d'abord un modèle (ex : ollama run llama3.1), puis pose ta question.",
   modelDemoDisabled: "La commande /model est indisponible en mode démo.",
+  modelReconnectConfirm:
+    "Changer d'IA réinitialise la conversation en cours. Retape /model pour confirmer.",
   modelChanged: (provider, model) => `IA changée : ${provider} · modèle ${model}.`,
   modelNeedsKey: (provider) =>
     `Aucune clé API pour ${provider}. Définis ${provider === "anthropic" ? "ANTHROPIC_API_KEY" : "OPENAI_API_KEY"} dans ton environnement, puis relance /model.`,
@@ -218,6 +221,8 @@ const EN: Strings = {
   selectHint: "↑/↓ then Enter · Tab for language",
   localReady: "Local mode: start a model first (e.g. ollama run llama3.1), then ask your question.",
   modelDemoDisabled: "The /model command is unavailable in demo mode.",
+  modelReconnectConfirm:
+    "Switching AI resets the current conversation. Type /model again to confirm.",
   modelChanged: (provider, model) => `Switched AI: ${provider} · model ${model}.`,
   modelNeedsKey: (provider) =>
     `No API key for ${provider}. Set ${provider === "anthropic" ? "ANTHROPIC_API_KEY" : "OPENAI_API_KEY"} in your environment, then run /model again.`,

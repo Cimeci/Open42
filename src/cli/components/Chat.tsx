@@ -94,6 +94,10 @@ export function Chat({
   const [project, setProject] = useState<string | undefined>(() => getProjectContext());
   const [rememberNudged, setRememberNudged] = useState(false);
   const [paletteIndex, setPaletteIndex] = useState(0);
+  // Bumped on a programmatic completion to remount TextInput and re-sync its cursor.
+  const [completionTick, setCompletionTick] = useState(0);
+  // `/model` (no arg) resets the session, so require a second /model to confirm.
+  const [confirmReconnect, setConfirmReconnect] = useState(false);
   const idRef = useRef(2);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -130,6 +134,7 @@ export function Chat({
       }
       if (key.tab) {
         setInput(`/${paletteMatches[activeIndex]!.name} `);
+        setCompletionTick((tick) => tick + 1);
         return;
       }
       if (key.escape) {
@@ -154,6 +159,12 @@ export function Chat({
     const timer = setTimeout(() => setConfirmExit(false), 2500);
     return () => clearTimeout(timer);
   }, [confirmExit]);
+
+  useEffect(() => {
+    if (!confirmReconnect) return;
+    const timer = setTimeout(() => setConfirmReconnect(false), 3000);
+    return () => clearTimeout(timer);
+  }, [confirmReconnect]);
 
   useEffect(() => {
     if (!demo) recordSession();
@@ -229,13 +240,19 @@ export function Chat({
   const handleModelCommand = (arg?: string) => {
     const tokens = (arg ?? "").trim().split(/\s+/).filter(Boolean);
 
-    // No argument: reopen the same connection screen as first run
-    // (paste a token / connect via the web / local model).
+    // No argument: reopen the connection screen (paste a token / local model).
+    // This resets the conversation, so ask for a second /model to confirm.
     if (tokens.length === 0) {
       if (demo || !onReconnect) {
         push({ role: "system", content: t.modelDemoDisabled });
         return;
       }
+      if (!confirmReconnect) {
+        setConfirmReconnect(true);
+        push({ role: "system", content: t.modelReconnectConfirm });
+        return;
+      }
+      setConfirmReconnect(false);
       onReconnect();
       return;
     }
@@ -258,7 +275,9 @@ export function Chat({
   };
 
   const handleCommand = async (text: string) => {
-    const [cmd, ...rest] = text.slice(1).trim().split(/\s+/);
+    const [rawCmd, ...rest] = text.slice(1).trim().split(/\s+/);
+    // Match commands case-insensitively so "/Model" or "/HELP" still work.
+    const cmd = rawCmd?.toLowerCase();
     const arg = rest.join(" ").trim() || undefined;
     switch (cmd) {
       case "remember":
@@ -377,6 +396,7 @@ export function Chat({
       if (picked) {
         if (picked.requiresArg) {
           setInput(`/${picked.name} `);
+          setCompletionTick((tick) => tick + 1);
           return;
         }
         setInput("");
@@ -458,6 +478,7 @@ export function Chat({
           <Box borderStyle="round" borderColor={BRAND_COLOR} paddingX={1}>
             <Text color="cyanBright">{pinned ? `${pinned} › ` : "› "}</Text>
             <TextInput
+              key={completionTick}
               value={input}
               onChange={setInput}
               onSubmit={onSubmit}

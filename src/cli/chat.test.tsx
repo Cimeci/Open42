@@ -51,4 +51,20 @@ describe("TUI rendering (no TTY required)", () => {
     // Non-matching commands drop out of the palette (/lang isn't shown anywhere else).
     expect(lastFrame()).not.toContain("/lang");
   });
+
+  it("completes an argument-command without corrupting the cursor (B4 regression)", async () => {
+    const delay = () => new Promise((r) => setTimeout(r, 25));
+    const open42 = new Open42({ provider: fakeProvider });
+    const { stdin, lastFrame } = render(<Chat open42={open42} demo initialLang="en" />);
+
+    stdin.write("/lang");
+    await delay();
+    stdin.write("\r"); // Enter: /lang needs an argument → completes to "/lang "
+    await delay();
+    stdin.write("fr"); // typing the argument must land after the space
+    await delay();
+
+    expect(lastFrame()).toContain("/lang fr");
+    expect(lastFrame()).not.toContain("/langfr");
+  });
 });

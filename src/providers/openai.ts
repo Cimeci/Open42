@@ -3,7 +3,7 @@
 
 import type { CompletionRequest, CompletionResult, OnTextDelta, Provider } from "../types.js";
 import { readSSE } from "./sse.js";
-import { networkErrorDetail, safeErrorDetail } from "./util.js";
+import { networkErrorDetail, safeErrorDetail, REQUEST_TIMEOUT_MS } from "./util.js";
 
 export interface OpenAIProviderOptions {
   readonly apiKey: string;
@@ -88,11 +88,14 @@ export class OpenAIProvider implements Provider {
 
   /** POST the payload, turning connection failures and non-OK responses into clear errors. */
   private async send(payload: Record<string, unknown>, signal?: AbortSignal): Promise<Response> {
+    // Streamed calls carry the caller's abort signal (Ctrl+C); non-streamed calls
+    // (e.g. /remember) get a default timeout so a dead endpoint can't hang forever.
+    const effectiveSignal = signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS);
     let response: Response;
     try {
       response = await fetch(this.opts.baseUrl, {
         method: "POST",
-        signal,
+        signal: effectiveSignal,
         headers: {
           "content-type": "application/json",
           authorization: `Bearer ${this.opts.apiKey}`,

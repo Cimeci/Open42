@@ -4,16 +4,12 @@ import TextInput from "ink-text-input";
 import { Banner } from "./Banner.js";
 import { saveConfig, type CliConfig } from "../config.js";
 import { strings, uiLangOf, type LangChoice } from "../i18n.js";
-import { HOSTED_PRESETS, configForPreset, identifyToken } from "../hostedPresets.js";
-import { openBrowser } from "../openBrowser.js";
-import { authorizeWithOpenRouter } from "../openrouterOAuth.js";
+import { configForPreset, identifyToken } from "../hostedPresets.js";
 import { detectLocalModels } from "../../providers/localModels.js";
 
 const LANG_CYCLE: LangChoice[] = ["auto", "fr", "en"];
 
-type Phase = "provider" | "token" | "web" | "local";
-
-const OPENROUTER = HOSTED_PRESETS.find((p) => p.id === "openrouter")!;
+type Phase = "provider" | "token" | "local";
 
 export function Onboarding({
   onDone,
@@ -27,8 +23,6 @@ export function Onboarding({
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [choice, setChoice] = useState<LangChoice>(initialLang);
-  const [webUrl, setWebUrl] = useState<string | null>(null);
-  const [webError, setWebError] = useState<string | null>(null);
 
   const uiLang = uiLangOf(choice);
   const t = strings(uiLang);
@@ -36,7 +30,6 @@ export function Onboarding({
 
   const MENU = [
     { id: "token" as const, label: t.connectPasteToken },
-    { id: "web" as const, label: t.connectWeb },
     { id: "local" as const, label: t.useLocal },
   ];
 
@@ -44,27 +37,6 @@ export function Onboarding({
     saveConfig(config);
     onDone(config);
   };
-
-  // Web sign-in: OpenRouter OAuth. Open the browser, wait for the key to come back.
-  useEffect(() => {
-    if (phase !== "web") return;
-    const controller = new AbortController();
-    let active = true;
-    setWebUrl(null);
-    setWebError(null);
-    authorizeWithOpenRouter({
-      openBrowser,
-      onUrl: (url) => active && setWebUrl(url),
-      signal: controller.signal,
-    })
-      .then((key) => active && finish(configForPreset(OPENROUTER, key, choice)))
-      .catch((err) => active && setWebError(err instanceof Error ? err.message : String(err)));
-    return () => {
-      active = false;
-      controller.abort();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase]);
 
   // Local: detect a running model silently and connect to the first one.
   useEffect(() => {
@@ -90,8 +62,6 @@ export function Onboarding({
   const pickMain = () => {
     setError(null);
     setValue("");
-    setWebUrl(null);
-    setWebError(null);
     setPhase(MENU[selected]!.id);
   };
 
@@ -107,13 +77,6 @@ export function Onboarding({
   useInput((_char, key) => {
     if (key.tab) {
       setChoice((c) => LANG_CYCLE[(LANG_CYCLE.indexOf(c) + 1) % LANG_CYCLE.length]!);
-      return;
-    }
-    // After a failed web sign-in, Enter returns to the menu.
-    if (phase === "web" && webError && key.return) {
-      setWebError(null);
-      setSelected(0);
-      setPhase("provider");
       return;
     }
     if (phase !== "provider") return;
@@ -145,25 +108,6 @@ export function Onboarding({
           {error && <Text color="red">{error}</Text>}
         </Box>
       )}
-
-      {phase === "web" &&
-        (webError ? (
-          <Box flexDirection="column">
-            <Text color="red">{t.webError(webError)}</Text>
-            <Text color="gray" dimColor>
-              {t.webRetryHint}
-            </Text>
-          </Box>
-        ) : (
-          <Box flexDirection="column">
-            <Text color="cyan">{t.webOpening}</Text>
-            {webUrl && (
-              <Text color="gray" dimColor>
-                {t.webUrlFallback(webUrl)}
-              </Text>
-            )}
-          </Box>
-        ))}
 
       {phase === "local" && <Text color="gray">{t.localConnecting}</Text>}
     </Box>

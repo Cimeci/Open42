@@ -35,14 +35,9 @@ export interface Strings {
   langPickHint: (label: string) => string;
   connectTitle: string;
   connectPasteToken: string;
-  connectWeb: string;
   useLocal: string;
   tokenPrompt: string;
   tokenUnknown: string;
-  webOpening: string;
-  webUrlFallback: (url: string) => string;
-  webError: (message: string) => string;
-  webRetryHint: string;
   localConnecting: string;
   selectHint: string;
   localReady: string;
@@ -125,14 +120,9 @@ const FR: Strings = {
   langPickHint: (label) => `Langue : ‹ ${label} ›  (Tab pour changer)`,
   connectTitle: "Aucune IA connectée — connecte-toi :",
   connectPasteToken: "Coller un token API — Claude, OpenAI, OpenRouter, NVIDIA, Groq…",
-  connectWeb: "Se connecter via le web — OpenRouter, comme Claude Code",
   useLocal: "Modèle local — gratuit, sur ta machine (Ollama, LM Studio…)",
   tokenPrompt: "Colle ton token API (on détecte le fournisseur automatiquement) :",
   tokenUnknown: "Token non reconnu. Attendu : sk-ant-…, sk-…, sk-or-v1-…, nvapi-…, gsk_…",
-  webOpening: "Ouverture du navigateur… autorise Open42 sur OpenRouter, puis reviens ici.",
-  webUrlFallback: (url) => `Si rien ne s'ouvre, va sur : ${url}`,
-  webError: (message) => `Connexion web échouée : ${message}`,
-  webRetryHint: "Entrée pour revenir au menu.",
   localConnecting: "Connexion à ton modèle local…",
   selectHint: "↑/↓ puis Entrée · Tab pour la langue",
   localReady:
@@ -221,14 +211,9 @@ const EN: Strings = {
   langPickHint: (label) => `Language: ‹ ${label} ›  (Tab to change)`,
   connectTitle: "No AI connected — connect one:",
   connectPasteToken: "Paste an API key — Claude, OpenAI, OpenRouter, NVIDIA, Groq…",
-  connectWeb: "Connect via the web — OpenRouter, like Claude Code",
   useLocal: "Local model — free, on your machine (Ollama, LM Studio…)",
   tokenPrompt: "Paste your API key (we detect the provider automatically):",
   tokenUnknown: "Unrecognized token. Expected: sk-ant-…, sk-…, sk-or-v1-…, nvapi-…, gsk_…",
-  webOpening: "Opening the browser… authorize Open42 on OpenRouter, then come back here.",
-  webUrlFallback: (url) => `If nothing opens, go to: ${url}`,
-  webError: (message) => `Web sign-in failed: ${message}`,
-  webRetryHint: "Press Enter to go back.",
   localConnecting: "Connecting to your local model…",
   selectHint: "↑/↓ then Enter · Tab for language",
   localReady: "Local mode: start a model first (e.g. ollama run llama3.1), then ask your question.",

@@ -19,12 +19,12 @@ describe("TUI rendering (no TTY required)", () => {
     expect(lastFrame()).toContain("Learn by understanding");
   });
 
-  it("shows a connection screen with the three connect modes (en)", () => {
+  it("shows a connection screen with token and local modes (en)", () => {
     const { lastFrame } = render(<Onboarding onDone={() => {}} initialLang="en" />);
     expect(lastFrame()).toContain("No AI connected");
     expect(lastFrame()).toContain("Paste an API key");
-    expect(lastFrame()).toContain("Connect via the web");
     expect(lastFrame()).toContain("Local model");
+    expect(lastFrame()).not.toContain("Connect via the web");
   });
 
   it("renders a localized chat input prompt", () => {

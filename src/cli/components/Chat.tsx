@@ -29,6 +29,14 @@ import {
   type Strings,
   type UiLang,
 } from "../i18n.js";
+import {
+  createProvider,
+  promptStyleFor,
+  envKeyFor,
+  type CliConfig,
+} from "../config.js";
+import { planModelSwitch } from "../modelCommand.js";
+import { detectLocalModels, type DetectedModel } from "../../providers/localModels.js";
 
 interface Entry {
   id: number;
@@ -48,18 +56,32 @@ function initialEntries(t: Strings, localHint: boolean): Entry[] {
   return entries;
 }
 
+/** Build the config to switch to when the user picks a detected local model. */
+function configForLocalModel(base: CliConfig, model: DetectedModel): CliConfig {
+  if (model.runtime === "ollama") {
+    return { ...base, provider: "ollama", model: model.model, baseUrl: undefined, apiKey: undefined };
+  }
+  return { ...base, provider: "custom", model: model.model, baseUrl: model.chatUrl, apiKey: undefined };
+}
+
 export function Chat({
   open42,
   demo = false,
   initialLang = "auto",
   localHint = false,
+  config,
   onLanguageChange,
+  onConfigChange,
+  onLogout,
 }: {
   open42: Open42;
   demo?: boolean;
   initialLang?: LangChoice;
   localHint?: boolean;
+  config?: CliConfig;
   onLanguageChange?: (choice: LangChoice) => void;
+  onConfigChange?: (config: CliConfig) => void;
+  onLogout?: () => void;
 }) {
   const { exit } = useApp();
   const [choice, setChoice] = useState<LangChoice>(initialLang);
@@ -76,6 +98,7 @@ export function Chat({
   const [confirmExit, setConfirmExit] = useState(false);
   const [project, setProject] = useState<string | undefined>(() => getProjectContext());
   const [rememberNudged, setRememberNudged] = useState(false);
+  const [localModels, setLocalModels] = useState<DetectedModel[]>([]);
   const idRef = useRef(2);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -168,6 +191,62 @@ export function Chat({
     push({ role: "system", content: t.memoryForgotten(n) });
   };
 
+  const applyConfig = (next: CliConfig) => {
+    try {
+      open42.setProvider(createProvider(next));
+      open42.setPromptStyle(promptStyleFor(next));
+      onConfigChange?.(next);
+      push({ role: "system", content: t.modelChanged(next.provider, next.model ?? "default") });
+    } catch (err) {
+      push({ role: "error", content: err instanceof Error ? err.message : String(err) });
+    }
+  };
+
+  const handleModelCommand = async (arg?: string) => {
+    if (demo || !config || !onConfigChange) {
+      push({ role: "system", content: t.modelDemoDisabled });
+      return;
+    }
+    const tokens = (arg ?? "").trim().split(/\s+/).filter(Boolean);
+
+    // Pick a model from a previously listed local runtime by its number.
+    if (tokens.length === 1) {
+      const index = Number(tokens[0]);
+      if (Number.isInteger(index) && index >= 1 && index <= localModels.length) {
+        applyConfig(configForLocalModel(config, localModels[index - 1]!));
+        return;
+      }
+    }
+
+    // No argument: show the current AI, scan for local runtimes, print usage.
+    if (tokens.length === 0) {
+      push({ role: "system", content: t.modelCurrent(config.provider, config.model ?? "default") });
+      push({ role: "system", content: t.modelDetecting });
+      const detected = await detectLocalModels();
+      setLocalModels(detected);
+      if (detected.length === 0) {
+        push({ role: "system", content: t.noLocalModels });
+      } else {
+        const list = detected.map((m, i) => `  ${i + 1}. ${m.label} — ${m.model}`).join("\n");
+        push({ role: "system", content: `${t.localModelsHeader}\n${list}` });
+      }
+      push({ role: "system", content: t.modelUsage });
+      return;
+    }
+
+    // Switch provider and/or model.
+    const plan = planModelSwitch(config, arg, envKeyFor);
+    if (plan.kind === "error") {
+      push({
+        role: "error",
+        content:
+          plan.reason === "needs-base-url" ? t.modelNeedsBaseUrl : t.modelNeedsKey(plan.provider),
+      });
+      return;
+    }
+    if (plan.kind === "switch") applyConfig(plan.config);
+  };
+
   const handleCommand = async (text: string) => {
     const [cmd, ...rest] = text.slice(1).trim().split(/\s+/);
     const arg = rest.join(" ").trim() || undefined;
@@ -205,6 +284,17 @@ export function Chat({
       case "auto":
         setPinned(undefined);
         push({ role: "system", content: t.autoOn });
+        return;
+      case "model":
+        await handleModelCommand(arg);
+        return;
+      case "logout":
+      case "disconnect":
+        if (demo || !onLogout) {
+          push({ role: "system", content: t.logoutDemoDisabled });
+          return;
+        }
+        onLogout();
         return;
       case "lang": {
         const v = (arg ?? "").toLowerCase();

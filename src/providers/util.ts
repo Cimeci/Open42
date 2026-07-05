@@ -12,3 +12,20 @@ export async function safeErrorDetail(response: Response): Promise<string> {
     return "<no body>";
   }
 }
+
+/**
+ * A short, human-readable cause for a failed `fetch`. Node surfaces the real
+ * reason (e.g. "ECONNREFUSED") on the error's `cause`, so prefer that over the
+ * generic "fetch failed" message.
+ */
+export function networkErrorDetail(err: unknown): string {
+  if (err instanceof Error) {
+    const cause = (err as { cause?: unknown }).cause;
+    if (cause && typeof cause === "object" && "code" in cause) {
+      const code = (cause as { code?: unknown }).code;
+      if (typeof code === "string") return code;
+    }
+    return err.message;
+  }
+  return String(err);
+}

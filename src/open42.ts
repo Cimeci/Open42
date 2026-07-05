@@ -57,14 +57,14 @@ export interface RespondOptions {
 }
 
 export class Open42 {
-  private readonly provider: Provider;
+  private provider: Provider;
   private readonly registry: MentorRegistry;
   private readonly router: Router;
   private readonly rigor: Rigor;
   private language?: string;
   private memory?: string;
   private readonly maxMessages: number;
-  private readonly promptStyle: PromptStyle;
+  private promptStyle: PromptStyle;
   private lastMentorId?: string;
   private readonly promptCache = new Map<string, string>();
 
@@ -93,6 +93,31 @@ export class Open42 {
     this.language = language;
     this.promptCache.clear();
     return this;
+  }
+
+  /**
+   * Swap the LLM backend at runtime (e.g. the `/model` command). Takes effect on
+   * the next turn. The provider does not affect the prompt, so the cache stands.
+   */
+  setProvider(provider: Provider): this {
+    if (!provider) throw new Error("Open42: a provider is required.");
+    this.provider = provider;
+    return this;
+  }
+
+  /**
+   * Switch between the detailed and compact system prompts (e.g. when moving to
+   * or from a small local model). Rebuilds prompts on the next turn.
+   */
+  setPromptStyle(promptStyle: PromptStyle): this {
+    this.promptStyle = promptStyle;
+    this.promptCache.clear();
+    return this;
+  }
+
+  /** The name of the active provider backend. */
+  get providerName(): string {
+    return this.provider.name;
   }
 
   /** Register a custom mentor at runtime. Returns this for chaining. */

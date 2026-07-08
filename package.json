@@ -1,5 +1,5 @@
 {
-  "name": "open42",
+  "name": "@open42/cli",
   "version": "0.1.0",
   "description": "A portable, provider-agnostic Socratic mentoring harness that helps students learn to code, reason, architect, review, and use AI well - without becoming dependent on it.",
   "keywords": [
@@ -15,6 +15,17 @@
     "pedagogy"
   ],
   "license": "MIT",
+  "homepage": "https://github.com/Cimeci/Open42#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Cimeci/Open42.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Cimeci/Open42/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -35,6 +46,7 @@
   "scripts": {
     "prebuild": "node scripts/build-prompts.mjs",
     "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "npm run build",
     "dev": "tsc -p tsconfig.json --watch",
     "pretest": "node scripts/build-prompts.mjs",
     "test": "vitest run",

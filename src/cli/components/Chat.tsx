@@ -317,6 +317,20 @@ export function Chat({
       case "model":
         handleModelCommand(arg);
         return;
+      case "verify": {
+        // /verify <question> → answer it in verification mode.
+        // /verify (alone) → re-verify the last mentor answer, if any.
+        if (arg) {
+          await sendToMentor(arg, { verify: true });
+          return;
+        }
+        if (!transcript.some((turn) => turn.role === "mentor")) {
+          push({ role: "system", content: t.verifyNothing });
+          return;
+        }
+        await sendToMentor(t.verifyLastRequest, { verify: true });
+        return;
+      }
       case "logout":
       case "disconnect":
         if (demo || !onLogout) {
@@ -412,7 +426,12 @@ export function Chat({
       await handleCommand(text);
       return;
     }
+    await sendToMentor(text);
+  };
 
+  // Send one student turn to the mentor and stream the reply. `verify` layers the
+  // verification mode on top of the routed mentor for this turn only.
+  const sendToMentor = async (text: string, opts: { verify?: boolean } = {}) => {
     const nextTranscript: Message[] = [...transcript, { role: "student", content: text }];
     setTranscript(nextTranscript);
     push({ role: "student", content: text });
@@ -425,7 +444,11 @@ export function Chat({
     try {
       const reply = await open42.respondStream(
         nextTranscript,
-        { signal: controller.signal, ...(pinned ? { mentor: pinned } : {}) },
+        {
+          signal: controller.signal,
+          ...(pinned ? { mentor: pinned } : {}),
+          ...(opts.verify ? { verify: true } : {}),
+        },
         {
           onMentor: (id) => {
             mentorId = id;

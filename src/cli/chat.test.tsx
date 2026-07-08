@@ -52,6 +52,19 @@ describe("TUI rendering (no TTY required)", () => {
     expect(lastFrame()).not.toContain("/lang");
   });
 
+  it("/verify with no prior answer reports there is nothing to verify", async () => {
+    const delay = () => new Promise((r) => setTimeout(r, 25));
+    const open42 = new Open42({ provider: fakeProvider });
+    const { stdin, lastFrame } = render(<Chat open42={open42} demo initialLang="en" />);
+
+    stdin.write("/verify");
+    await delay();
+    stdin.write("\r"); // palette: /verify has an optional arg → runs immediately
+    await delay();
+
+    expect(lastFrame()).toContain("Nothing to verify");
+  });
+
   it("completes an argument-command without corrupting the cursor (B4 regression)", async () => {
     const delay = () => new Promise((r) => setTimeout(r, 25));
     const open42 = new Open42({ provider: fakeProvider });

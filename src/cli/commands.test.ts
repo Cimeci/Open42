@@ -18,7 +18,7 @@ describe("slashCommands", () => {
 
   it("exposes every command the chat handles", () => {
     const names = slashCommands("en").map((c) => c.name);
-    for (const expected of ["help", "model", "lang", "logout", "project", "quit"]) {
+    for (const expected of ["help", "model", "verify", "lang", "logout", "project", "quit"]) {
       expect(names).toContain(expected);
     }
   });

@@ -26,6 +26,7 @@ const DEFS: readonly CommandDef[] = [
   { name: "mentor", hint: "<id>", arg: "required", fr: "fixe un mentor", en: "pin a mentor" },
   { name: "auto", fr: "routage automatique", en: "resume automatic routing" },
   { name: "model", hint: "[ia] [modèle]", arg: "optional", fr: "change d'IA (écran de connexion)", en: "switch AI (connection screen)" },
+  { name: "verify", hint: "[question]", arg: "optional", fr: "vérifie la réponse de l'IA (raisonnement + validation + sources)", en: "verify the AI's answer (reasoning + validation + sources)" },
   { name: "lang", hint: "<auto|fr|en>", arg: "required", fr: "change la langue", en: "change the language" },
   { name: "remember", fr: "sauvegarde la session", en: "save this session" },
   { name: "memory", fr: "affiche la mémoire", en: "show memory" },

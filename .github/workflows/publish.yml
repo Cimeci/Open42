@@ -26,12 +26,14 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           registry-url: https://registry.npmjs.org
 
-      # Trusted publishing (OIDC) needs npm >= 11.5.1; Node 20 ships npm 10.x.
+      # Trusted publishing (OIDC) needs npm >= 11.5.1; Node ships npm 10.x.
+      # Pin to the 11.x line: OIDC-capable and compatible with this Node
+      # (npm@latest/12.x now requires Node >= 22.22, which the runner may lag).
       - name: Upgrade npm
-        run: npm install -g npm@latest
+        run: npm install -g npm@11
 
       - name: Install dependencies
         run: npm ci

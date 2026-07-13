@@ -37,6 +37,7 @@ import {
 } from "../config.js";
 import { planModelSwitch } from "../modelCommand.js";
 import { slashCommands, filterCommands, type SlashCommand } from "../commands.js";
+import { runLinters, formatFindingsForReview, allFindings } from "../../linters/index.js";
 
 interface Entry {
   id: number;
@@ -331,6 +332,38 @@ export function Chat({
         await sendToMentor(t.verifyLastRequest, { verify: true });
         return;
       }
+      case "norm": {
+        if (demo) {
+          push({ role: "system", content: t.normDemoDisabled });
+          return;
+        }
+        const run = await runLinters([arg ?? "."]);
+        if (run.results.length === 0) {
+          push({ role: "system", content: t.normNoFiles });
+          return;
+        }
+        // A language was detected but its linter is not installed: tell the student.
+        for (const r of run.results) {
+          if (!r.available) push({ role: "system", content: t.normToolMissing(r.tool) });
+        }
+        const findings = allFindings(run);
+        if (findings.length === 0) {
+          if (run.results.some((r) => r.available)) {
+            push({ role: "system", content: t.normClean });
+          }
+          return;
+        }
+        const summary = findings
+          .slice(0, 8)
+          .map((f) => `  ${f.file}:${f.line}  ${f.code}`)
+          .join("\n");
+        push({ role: "system", content: `${t.normSummary(findings.length)}\n${summary}` });
+        await sendToMentor(t.normRequest, {
+          mentor: "reviewer",
+          reviewContext: formatFindingsForReview(run.results),
+        });
+        return;
+      }
       case "logout":
       case "disconnect":
         if (demo || !onLogout) {
@@ -431,7 +464,10 @@ export function Chat({
 
   // Send one student turn to the mentor and stream the reply. `verify` layers the
   // verification mode on top of the routed mentor for this turn only.
-  const sendToMentor = async (text: string, opts: { verify?: boolean } = {}) => {
+  const sendToMentor = async (
+    text: string,
+    opts: { verify?: boolean; mentor?: string; reviewContext?: string } = {},
+  ) => {
     const nextTranscript: Message[] = [...transcript, { role: "student", content: text }];
     setTranscript(nextTranscript);
     push({ role: "student", content: text });
@@ -447,7 +483,10 @@ export function Chat({
         {
           signal: controller.signal,
           ...(pinned ? { mentor: pinned } : {}),
+          // An explicit mentor (e.g. /norm forces the reviewer) wins over a pin.
+          ...(opts.mentor ? { mentor: opts.mentor } : {}),
           ...(opts.verify ? { verify: true } : {}),
+          ...(opts.reviewContext ? { reviewContext: opts.reviewContext } : {}),
         },
         {
           onMentor: (id) => {

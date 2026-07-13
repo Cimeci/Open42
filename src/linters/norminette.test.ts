@@ -1,10 +1,6 @@
 import { describe, it, expect } from "vitest";
-import {
-  parseNorminette,
-  runNorminette,
-  formatFindingsForReview,
-  type ExecImpl,
-} from "./norminette.js";
+import { parseNorminette, runNorminette } from "./norminette.js";
+import type { ExecImpl } from "./types.js";
 
 const SAMPLE = [
   "main.c: Error!",
@@ -37,21 +33,20 @@ describe("parseNorminette", () => {
 });
 
 describe("runNorminette", () => {
-  const REQUEST = ["."];
+  const FILES = ["main.c"];
 
-  it("parses stdout from a successful run", async () => {
+  it("parses stdout from a successful run and tags it c/norminette", async () => {
     const execImpl: ExecImpl = async () => ({ stdout: SAMPLE, stderr: "" });
-    const result = await runNorminette(REQUEST, { execImpl });
-    expect(result.available).toBe(true);
+    const result = await runNorminette(FILES, { execImpl });
+    expect(result).toMatchObject({ tool: "norminette", language: "c", available: true });
     expect(result.findings).toHaveLength(3);
   });
 
   it("still parses stdout when norminette exits non-zero (norm errors present)", async () => {
     const execImpl: ExecImpl = async () => {
-      const err = Object.assign(new Error("exit 1"), { code: 1, stdout: SAMPLE });
-      throw err;
+      throw Object.assign(new Error("exit 1"), { code: 1, stdout: SAMPLE });
     };
-    const result = await runNorminette(REQUEST, { execImpl });
+    const result = await runNorminette(FILES, { execImpl });
     expect(result.available).toBe(true);
     expect(result.findings).toHaveLength(3);
   });
@@ -60,16 +55,7 @@ describe("runNorminette", () => {
     const execImpl: ExecImpl = async () => {
       throw Object.assign(new Error("not found"), { code: "ENOENT" });
     };
-    const result = await runNorminette(REQUEST, { execImpl });
-    expect(result).toEqual({ available: false, findings: [] });
-  });
-});
-
-describe("formatFindingsForReview", () => {
-  it("wraps findings in read-only markers with a no-fix instruction", () => {
-    const block = formatFindingsForReview(parseNorminette(SAMPLE));
-    expect(block).toContain("<norminette-findings>");
-    expect(block).toContain("INVALID_HEADER");
-    expect(block).toMatch(/do not correct|do not paste|fix (it|them) themselves/i);
+    const result = await runNorminette(FILES, { execImpl });
+    expect(result).toEqual({ tool: "norminette", language: "c", available: false, findings: [] });
   });
 });

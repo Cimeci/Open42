@@ -37,7 +37,7 @@ import {
 } from "../config.js";
 import { planModelSwitch } from "../modelCommand.js";
 import { slashCommands, filterCommands, type SlashCommand } from "../commands.js";
-import { runNorminette, formatFindingsForReview } from "../../norminette.js";
+import { runLinters, formatFindingsForReview, allFindings } from "../../linters/index.js";
 
 interface Entry {
   id: number;
@@ -337,23 +337,30 @@ export function Chat({
           push({ role: "system", content: t.normDemoDisabled });
           return;
         }
-        const result = await runNorminette([arg ?? "."]);
-        if (!result.available) {
-          push({ role: "system", content: t.normNotInstalled });
+        const run = await runLinters([arg ?? "."]);
+        if (run.results.length === 0) {
+          push({ role: "system", content: t.normNoFiles });
           return;
         }
-        if (result.findings.length === 0) {
-          push({ role: "system", content: t.normClean });
+        // A language was detected but its linter is not installed: tell the student.
+        for (const r of run.results) {
+          if (!r.available) push({ role: "system", content: t.normToolMissing(r.tool) });
+        }
+        const findings = allFindings(run);
+        if (findings.length === 0) {
+          if (run.results.some((r) => r.available)) {
+            push({ role: "system", content: t.normClean });
+          }
           return;
         }
-        const summary = result.findings
+        const summary = findings
           .slice(0, 8)
           .map((f) => `  ${f.file}:${f.line}  ${f.code}`)
           .join("\n");
-        push({ role: "system", content: `${t.normSummary(result.findings.length)}\n${summary}` });
+        push({ role: "system", content: `${t.normSummary(findings.length)}\n${summary}` });
         await sendToMentor(t.normRequest, {
           mentor: "reviewer",
-          reviewContext: formatFindingsForReview(result.findings),
+          reviewContext: formatFindingsForReview(run.results),
         });
         return;
       }

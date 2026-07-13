@@ -35,8 +35,11 @@ jobs:
       - name: Upgrade npm
         run: npm install -g npm@11
 
+      # `npm install` (not `npm ci`): the committed lockfile is generated on
+      # macOS and omits some Linux-only optional native bindings (vitest 4 /
+      # rolldown), which makes the strict `npm ci` reject it on the runner.
       - name: Install dependencies
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       - name: Run tests
         run: npm test

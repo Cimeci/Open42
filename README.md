@@ -1,3 +1,5 @@
+
+
 # Open42
 
 > A portable, provider-agnostic **Socratic mentoring harness** that helps
@@ -85,6 +87,7 @@ foundation (the same guardrails, independence creed, and Socratic method):
 | **Architecture Mentor** | `architect` | weigh design choices and trade-offs. |
 | **Code Review Mentor** | `reviewer` | critique their *own* code. |
 | **AI Literacy Coach** | `ai-coach` | decompose, prompt, **verify**, and judge when *not* to use AI. |
+| **Peer Coach** | `peer-coach` | decide when and how to ask a classmate (binôme) for help. |
 
 A **router** dispatches each student message to the right mentor. The default
 `HeuristicRouter` is fast and free but keyword-based (English + French shipped);

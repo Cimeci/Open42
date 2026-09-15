@@ -38,7 +38,7 @@ ANTHROPIC_API_KEY=sk-ant-... open42
 <summary>Prefer to run from source?</summary>
 
 ```bash
-git clone https://github.com/Cimeci/Open42.git
+git clone https://github.com/Cimeci2/Open42.git
 cd Open42
 npm install
 npm start                # builds, then launches the mentor

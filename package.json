@@ -15,13 +15,13 @@
     "pedagogy"
   ],
   "license": "MIT",
-  "homepage": "https://github.com/Cimeci/Open42#readme",
+  "homepage": "https://github.com/Cimeci2/Open42#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Cimeci/Open42.git"
+    "url": "git+https://github.com/Cimeci2/Open42.git"
   },
   "bugs": {
-    "url": "https://github.com/Cimeci/Open42/issues"
+    "url": "https://github.com/Cimeci2/Open42/issues"
   },
   "publishConfig": {
     "access": "public"

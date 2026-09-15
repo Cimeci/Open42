@@ -1,0 +1,126 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "git-current-branch",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"branch",
+				"--show-current"
+			]
+		},
+		{
+			"label": "git-status-short",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short"
+			]
+		},
+		{
+			"label": "git-create-branch-issue1",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"checkout",
+				"-b",
+				"feat/issue-1-pedagogy-42-context"
+			]
+		},
+		{
+			"label": "npm-test-issue1",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"test"
+			]
+		},
+		{
+			"label": "git-status-after-test",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short"
+			]
+		},
+		{
+			"label": "git-add-issue1-files",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"add",
+				"prompts/calibration.md",
+				"prompts/guardrails.md",
+				"prompts/method.md",
+				"prompts/domains/42-context.md",
+				"prompts/domains/peer-learning.md",
+				"scripts/build-prompts.mjs",
+				"src/cli/components/Banner.tsx",
+				"src/cli/components/Chat.tsx",
+				"src/cli/i18n.ts",
+				"src/cli/index.tsx",
+				"src/cli/theme.ts",
+				"src/cli/progress.ts",
+				"src/cli/progress.test.ts",
+				"src/cli/projectContext.ts",
+				"src/cli/projectContext.test.ts",
+				"src/evals.ts",
+				"src/mentors.ts",
+				"src/open42.test.ts",
+				"src/prompts.test.ts",
+				"src/prompts.ts",
+				"src/types.ts"
+			]
+		},
+		{
+			"label": "git-commit-issue1",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"commit",
+				"-m",
+				"feat: implement issue #1 pedagogy and 42 context improvements"
+			]
+		},
+		{
+			"label": "git-status-post-commit",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short"
+			]
+		},
+		{
+			"label": "git-push-branch",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"push",
+				"-u",
+				"origin",
+				"feat/issue-1-pedagogy-42-context"
+			]
+		},
+		{
+			"label": "gh-create-pr-issue1",
+			"type": "shell",
+			"command": "gh",
+			"args": [
+				"pr",
+				"create",
+				"--base",
+				"main",
+				"--head",
+				"feat/issue-1-pedagogy-42-context",
+				"--title",
+				"feat: implement issue #1 pedagogy and 42 integration MVP",
+				"--body",
+				"## Summary\nThis PR implements the four improvements described in issue #1 as an MVP:\n\n1. Peer-learning nudge when the learner is looping\n2. Proactive memory suggestion (without changing privacy model)\n3. Local autonomy indicator with `/progress`\n4. 42 project context layer with `/project`\n\n## What changed\n- Prompt updates for peer-learning redirects, loop handling, and proactive memory guidance\n- New domains: `peer-learning` and `42-context`\n- New built-in mentor: `peer-coach`\n- New CLI local modules:\n  - progress tracking (`/progress`, `/solved`)\n  - project context (`/project`, `/project clear`)\n- Prompt memory injection now includes active 42 project context\n- Eval scenarios and tests updated\n\n## Validation\n- `npm test`\n- Result: 9 test files passed, 67 tests passed\n\nCloses #1"
+			]
+		}
+	]
+}

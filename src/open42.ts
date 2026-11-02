@@ -2,7 +2,7 @@
 // router, and dispatches each student turn to the right mentor. This is the
 // multi-agent layer on top of the single-mentor Maieutic primitive.
 
-import { composeMentorPrompt } from "./prompts.js";
+import { composeMentorPrompt, SECTION_RULE } from "./prompts.js";
 import { SUMMARIZER, VERIFY } from "./generated/prompts.js";
 import { assertRespondable, toProviderMessages } from "./messages.js";
 import { MentorRegistry, DEFAULT_MENTOR_ID } from "./mentors.js";
@@ -57,6 +57,9 @@ export interface RespondOptions {
   /** Verification mode for this turn only: reason step by step, give a validation
    * command, cite sources. Layered on top of the routed mentor, not cached. */
   readonly verify?: boolean;
+  /** Deterministic sensor findings (e.g. norminette) injected as feedforward for
+   * this turn only. Layered on top of the routed mentor, not cached. */
+  readonly reviewContext?: string;
 }
 
 export class Open42 {
@@ -147,7 +150,7 @@ export class Open42 {
 
     const mentor = await this.selectMentor(transcript, options);
     const result = await this.provider.complete({
-      system: this.composePrompt(mentor, options.verify ? VERIFY : undefined),
+      system: this.composePrompt(mentor, this.turnExtra(options)),
       messages: this.providerMessages(transcript),
     });
 
@@ -169,7 +172,7 @@ export class Open42 {
     handlers.onMentor?.(mentor.id);
 
     const request = {
-      system: this.composePrompt(mentor, options.verify ? VERIFY : undefined),
+      system: this.composePrompt(mentor, this.turnExtra(options)),
       messages: this.providerMessages(transcript),
     };
 
@@ -230,6 +233,12 @@ export class Open42 {
       while (slice.length > 0 && slice[0]!.role !== "student") slice = slice.slice(1);
     }
     return toProviderMessages(slice);
+  }
+
+  /** Per-turn prompt additions (verify mode, sensor findings) layered on the mentor. */
+  private turnExtra(options: RespondOptions): string | undefined {
+    const parts = [options.verify ? VERIFY : null, options.reviewContext].filter(Boolean);
+    return parts.length > 0 ? parts.join(SECTION_RULE) : undefined;
   }
 
   private composePrompt(mentor: MentorDefinition, extra?: string): string {

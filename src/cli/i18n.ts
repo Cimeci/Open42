@@ -45,6 +45,12 @@ export interface Strings {
   modelReconnectConfirm: string;
   verifyLastRequest: string;
   verifyNothing: string;
+  normDemoDisabled: string;
+  normNoFiles: string;
+  normToolMissing: (tool: string) => string;
+  normClean: string;
+  normRequest: string;
+  normSummary: (count: number) => string;
   modelChanged: (provider: string, model: string) => string;
   modelNeedsKey: (provider: string) => string;
   modelNeedsBaseUrl: string;
@@ -91,6 +97,7 @@ const FR: Strings = {
     "/auto            reprend le routage automatique",
     "/model           rouvre l'écran de connexion · ou /model <ia> [modèle] pour un changement rapide",
     "/verify          vérifie la réponse de l'IA (ou /verify <question>)",
+    "/norm            vérifie la norme C/Python et fais-toi guider (ou /norm <chemin>)",
     "/lang <auto|fr|en>  change la langue",
     "/remember        sauvegarde un résumé de la session (mémoire locale)",
     "/memory          affiche ce qui est mémorisé",
@@ -137,6 +144,15 @@ const FR: Strings = {
   verifyLastRequest:
     "Vérifie ta réponse précédente : explicite ton raisonnement étape par étape, propose une commande de validation que je peux lancer, et cite tes sources.",
   verifyNothing: "Rien à vérifier pour l'instant. Pose une question, ou utilise /verify <question>.",
+  normDemoDisabled: "La commande /norm est indisponible en mode démo.",
+  normNoFiles: "Aucun fichier C (.c/.h) ni Python (.py) trouvé à analyser ici.",
+  normToolMissing: (tool) =>
+    `${tool} n'est pas installé (essaie \`pip install ${tool}\`), ou introuvable dans le PATH.`,
+  normClean: "Aucune erreur de norme ✅. Beau travail — on peut relire plus en profondeur si tu veux.",
+  normRequest:
+    "Le linter a relevé des erreurs de norme dans mon code. Aide-moi à comprendre chacune et à les corriger moi-même, sans me donner le code corrigé.",
+  normSummary: (count) =>
+    `${count} erreur${count === 1 ? "" : "s"} de norme. Le reviewer va t'aider à les comprendre :`,
   modelChanged: (provider, model) => `IA changée : ${provider} · modèle ${model}.`,
   modelNeedsKey: (provider) =>
     `Aucune clé API pour ${provider}. Définis ${provider === "anthropic" ? "ANTHROPIC_API_KEY" : "OPENAI_API_KEY"} dans ton environnement, puis relance /model.`,
@@ -188,6 +204,7 @@ const EN: Strings = {
     "/auto            resume automatic routing",
     "/model           reopen the connection screen · or /model <ai> [model] for a quick switch",
     "/verify          verify the AI's answer (or /verify <question>)",
+    "/norm            check the C/Python norm and get guided (or /norm <path>)",
     "/lang <auto|fr|en>  change the language",
     "/remember        save a summary of this session (local memory)",
     "/memory          show what is remembered",
@@ -233,6 +250,15 @@ const EN: Strings = {
   verifyLastRequest:
     "Verify your previous answer: reason step by step, give me a validation command I can run, and cite your sources.",
   verifyNothing: "Nothing to verify yet. Ask a question, or use /verify <question>.",
+  normDemoDisabled: "The /norm command is unavailable in demo mode.",
+  normNoFiles: "No C (.c/.h) or Python (.py) files found to check here.",
+  normToolMissing: (tool) =>
+    `${tool} is not installed (try \`pip install ${tool}\`), or not found on your PATH.`,
+  normClean: "No norm errors ✅. Nice — we can review more deeply if you like.",
+  normRequest:
+    "The linter flagged some norm errors in my code. Help me understand each one and fix them myself, without giving me the corrected code.",
+  normSummary: (count) =>
+    `${count} norm error${count === 1 ? "" : "s"}. The reviewer will help you understand them:`,
   modelChanged: (provider, model) => `Switched AI: ${provider} · model ${model}.`,
   modelNeedsKey: (provider) =>
     `No API key for ${provider}. Set ${provider === "anthropic" ? "ANTHROPIC_API_KEY" : "OPENAI_API_KEY"} in your environment, then run /model again.`,

@@ -328,6 +328,33 @@ describe("Open42 verify mode", () => {
   });
 });
 
+describe("Open42 per-turn review context", () => {
+  const MARKER = "ZZZ-NORM-BLOCK";
+
+  it("injects reviewContext into the system prompt for this turn", async () => {
+    const provider = new CapturingProvider();
+    const open42 = new Open42({ provider });
+    await open42.respond([{ role: "student", content: "review my code" }], { reviewContext: MARKER });
+    expect(provider.lastRequest?.system).toContain(MARKER);
+  });
+
+  it("combines verify mode and reviewContext", async () => {
+    const provider = new CapturingProvider();
+    const open42 = new Open42({ provider });
+    await open42.respond([{ role: "student", content: "x" }], { verify: true, reviewContext: MARKER });
+    expect(provider.lastRequest?.system).toContain("Verification mode");
+    expect(provider.lastRequest?.system).toContain(MARKER);
+  });
+
+  it("does not leak the review context into later turns (cache clean)", async () => {
+    const provider = new CapturingProvider();
+    const open42 = new Open42({ provider });
+    await open42.respond([{ role: "student", content: "x" }], { reviewContext: MARKER });
+    await open42.respond([{ role: "student", content: "y" }]);
+    expect(provider.lastRequest?.system).not.toContain(MARKER);
+  });
+});
+
 describe("sticky routing", () => {
   it("stays with the current mentor when a follow-up has no clear signal", async () => {
     const provider = new CapturingProvider();

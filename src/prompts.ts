@@ -27,7 +27,7 @@ export const ALL_DOMAINS: readonly Domain[] = [
   "review",
 ];
 
-const SECTION_RULE = "\n\n---\n\n";
+export const SECTION_RULE = "\n\n---\n\n";
 
 /**
  * The shared foundation present in EVERY mentor: who the mentor is, the rules,

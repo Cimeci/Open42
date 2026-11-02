@@ -12,14 +12,14 @@ Cursor, Gemini CLI...
 The quickest way, for any supported tool:
 
 ```bash
-npx skills add Cimeci2/Open42
+npx skills add Cimeci/Open42
 ```
 
 Or by hand, copy the `skills/open42/` folder into your tool's skills directory.
 For Claude Code:
 
 ```bash
-git clone https://github.com/Cimeci2/Open42.git
+git clone https://github.com/Cimeci/Open42.git
 cp -r Open42/skills/open42 ~/.claude/skills/        # every project
 # or: cp -r Open42/skills/open42 .claude/skills/    # this project only
 ```
